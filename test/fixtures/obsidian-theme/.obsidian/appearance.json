@@ -1,0 +1,8 @@
+{
+  "cssTheme": "Sample",
+  "theme": "obsidian",
+  "accentColor": "#2e8b57",
+  "enabledCssSnippets": ["soft-cards", "hostile", "missing-snippet", "../escape", ""],
+  "textFontFamily": "\"Sample Sans\", sans-serif",
+  "baseFontSize": 15
+}

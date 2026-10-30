@@ -1,0 +1,222 @@
+[
+  {
+    "value": "yes",
+    "written": "'yes'"
+  },
+  {
+    "value": "No",
+    "written": "'No'"
+  },
+  {
+    "value": "null",
+    "written": "'null'"
+  },
+  {
+    "value": "~",
+    "written": "'~'"
+  },
+  {
+    "value": "123",
+    "written": "'123'"
+  },
+  {
+    "value": "1.5",
+    "written": "'1.5'"
+  },
+  {
+    "value": "On",
+    "written": "'On'"
+  },
+  {
+    "value": "true",
+    "written": "'true'"
+  },
+  {
+    "value": "0x10",
+    "written": "'0x10'"
+  },
+  {
+    "value": "0o17",
+    "written": "'0o17'"
+  },
+  {
+    "value": "2026-10-15",
+    "written": "'2026-10-15'"
+  },
+  {
+    "value": "2026-10-15 10:00",
+    "written": "'2026-10-15 10:00'"
+  },
+  {
+    "value": "1:30",
+    "written": "'1:30'"
+  },
+  {
+    "value": "a: b",
+    "written": "'a: b'"
+  },
+  {
+    "value": "#tag",
+    "written": "'#tag'"
+  },
+  {
+    "value": "x # y",
+    "written": "'x # y'"
+  },
+  {
+    "value": "- dash",
+    "written": "'- dash'"
+  },
+  {
+    "value": "@at",
+    "written": "'@at'"
+  },
+  {
+    "value": "%p",
+    "written": "'%p'"
+  },
+  {
+    "value": "!b",
+    "written": "'!b'"
+  },
+  {
+    "value": "&a",
+    "written": "'&a'"
+  },
+  {
+    "value": "*s",
+    "written": "'*s'"
+  },
+  {
+    "value": "|p",
+    "written": "'|p'"
+  },
+  {
+    "value": ">g",
+    "written": "'>g'"
+  },
+  {
+    "value": "? q",
+    "written": "'? q'"
+  },
+  {
+    "value": "\"dq\"",
+    "written": "'\"dq\"'"
+  },
+  {
+    "value": "it's",
+    "written": "it's"
+  },
+  {
+    "value": "  padded  ",
+    "written": "'  padded  '"
+  },
+  {
+    "value": "tab\there",
+    "written": "'tab\there'"
+  },
+  {
+    "value": "back\\slash",
+    "written": "back\\slash"
+  },
+  {
+    "value": "emoji 🚀",
+    "written": "emoji 🚀"
+  },
+  {
+    "value": "שלום",
+    "written": "שלום"
+  },
+  {
+    "value": "[x]",
+    "written": "'[x]'"
+  },
+  {
+    "value": "{y}",
+    "written": "'{y}'"
+  },
+  {
+    "value": "a, b",
+    "written": "'a, b'"
+  },
+  {
+    "value": "trailing:",
+    "written": "'trailing:'"
+  },
+  {
+    "value": "...",
+    "written": "..."
+  },
+  {
+    "value": "---",
+    "written": "'---'"
+  },
+  {
+    "value": ".5",
+    "written": "'.5'"
+  },
+  {
+    "value": "+1",
+    "written": "'+1'"
+  },
+  {
+    "value": "1_000",
+    "written": "'1_000'"
+  },
+  {
+    "value": "NaN",
+    "written": "NaN"
+  },
+  {
+    "value": ".nan",
+    "written": "'.nan'"
+  },
+  {
+    "value": "Infinity",
+    "written": "Infinity"
+  },
+  {
+    "value": "<<",
+    "written": "<<"
+  },
+  {
+    "value": "=",
+    "written": "="
+  },
+  {
+    "value": "Y",
+    "written": "'Y'"
+  },
+  {
+    "value": "n",
+    "written": "'n'"
+  },
+  {
+    "value": "0",
+    "written": "'0'"
+  },
+  {
+    "value": "-",
+    "written": "'-'"
+  },
+  {
+    "value": ":",
+    "written": "':'"
+  },
+  {
+    "value": "#",
+    "written": "'#'"
+  },
+  {
+    "value": "Won't do",
+    "written": "Won't do"
+  },
+  {
+    "value": "Done: QA",
+    "written": "'Done: QA'"
+  },
+  {
+    "value": "To Do",
+    "written": "To Do"
+  }
+]

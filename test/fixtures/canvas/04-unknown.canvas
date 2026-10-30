@@ -1,0 +1,9 @@
+{
+	"version": "1.0-draft",
+	"nodes": [
+		{ "id": "u1", "type": "sticker", "x": 1.0, "y": 2e1, "width": 100, "height": 100, "sticker": { "emoji": "star", "tilt": -0 } },
+		{ "id": "u2", "type": "text", "text": "kept", "x": 0, "y": 0, "width": 10, "height": 10, "plugin-data": [1, 2, { "deep": [true, false, null] }] }
+	],
+	"edges": [],
+	"x-metadata" : { "author" : "someone", "tags" : [ ] }
+}

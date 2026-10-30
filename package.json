@@ -1,0 +1,493 @@
+{
+  "name": "notewell",
+  "displayName": "%extension.displayName%",
+  "description": "%extension.description%",
+  "version": "0.8.0",
+  "preview": true,
+  "publisher": "nodewell",
+  "icon": "images/icon.png",
+  "license": "MIT",
+  "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/nodewell/notewell.git"
+  },
+  "homepage": "https://github.com/nodewell/notewell#readme",
+  "bugs": {
+    "url": "https://github.com/nodewell/notewell/issues"
+  },
+  "engines": {
+    "vscode": "^1.100.0"
+  },
+  "categories": [
+    "Visualization",
+    "Other"
+  ],
+  "keywords": [
+    "obsidian",
+    "kanban",
+    "vault",
+    "markdown",
+    "board",
+    "wikilink",
+    "notes",
+    "backlog",
+    "backlog.md",
+    "tasks"
+  ],
+  "main": "./dist/extension.cjs",
+  "activationEvents": [
+    "onLanguage:markdown",
+    "workspaceContains:backlog/config.yml",
+    "workspaceContains:.backlog/config.yml",
+    "workspaceContains:backlog.config.yml",
+    "onWebviewPanel:notewell.backlog",
+    "onStartupFinished"
+  ],
+  "capabilities": {
+    "untrustedWorkspaces": {
+      "supported": true
+    }
+  },
+  "l10n": "./l10n",
+  "contributes": {
+    "customEditors": [
+      {
+        "viewType": "notewell.kanban",
+        "displayName": "%customEditor.kanban.displayName%",
+        "selector": [
+          {
+            "filenamePattern": "*.md"
+          }
+        ],
+        "priority": "option"
+      },
+      {
+        "viewType": "notewell.canvas",
+        "displayName": "%customEditor.canvas.displayName%",
+        "selector": [
+          {
+            "filenamePattern": "*.canvas"
+          }
+        ],
+        "priority": "default"
+      }
+    ],
+    "commands": [
+      {
+        "command": "notewell.kanban.openAsBoard",
+        "title": "%command.kanban.openAsBoard%",
+        "category": "Notewell",
+        "icon": "$(project)"
+      },
+      {
+        "command": "notewell.kanban.openAsText",
+        "title": "%command.kanban.openAsText%",
+        "category": "Notewell",
+        "icon": "$(go-to-file)"
+      },
+      {
+        "command": "notewell.kanban.newBoard",
+        "title": "%command.kanban.newBoard%",
+        "category": "Notewell",
+        "icon": "$(new-file)"
+      },
+      {
+        "command": "notewell.kanban.collapseAllCardBodies",
+        "title": "%command.kanban.collapseAllCardBodies%",
+        "category": "Notewell"
+      },
+      {
+        "command": "notewell.kanban.expandAllCardBodies",
+        "title": "%command.kanban.expandAllCardBodies%",
+        "category": "Notewell"
+      },
+      {
+        "command": "notewell.backlog.open",
+        "title": "%command.backlog.open%",
+        "category": "Notewell",
+        "icon": "$(checklist)"
+      },
+      {
+        "command": "notewell.backlog.addFolder",
+        "title": "%command.backlog.addFolder%",
+        "category": "Notewell"
+      },
+      {
+        "command": "notewell.backlog.registerFolder",
+        "title": "%command.backlog.registerFolder%",
+        "category": "Notewell"
+      },
+      {
+        "command": "notewell.dailyNotes.openToday",
+        "title": "%command.dailyNotes.openToday%",
+        "category": "Notewell",
+        "icon": "$(calendar)"
+      },
+      {
+        "command": "notewell.dailyNotes.openForDate",
+        "title": "%command.dailyNotes.openForDate%",
+        "category": "Notewell"
+      },
+      {
+        "command": "notewell.templates.insert",
+        "title": "%command.templates.insert%",
+        "category": "Notewell"
+      },
+      {
+        "command": "notewell.templates.insertDate",
+        "title": "%command.templates.insertDate%",
+        "category": "Notewell"
+      },
+      {
+        "command": "notewell.templates.insertTime",
+        "title": "%command.templates.insertTime%",
+        "category": "Notewell"
+      },
+      {
+        "command": "notewell.notes.createFromLink",
+        "title": "%command.notes.createFromLink%",
+        "category": "Notewell"
+      }
+    ],
+    "menus": {
+      "editor/title": [
+        {
+          "command": "notewell.kanban.openAsBoard",
+          "when": "resourceExtname == .md && activeCustomEditorId != notewell.kanban",
+          "group": "navigation"
+        },
+        {
+          "command": "notewell.kanban.openAsText",
+          "when": "activeCustomEditorId == notewell.kanban",
+          "group": "navigation"
+        },
+        {
+          "command": "notewell.backlog.open",
+          "when": "resourceExtname == .md && resourceDirname in notewell.backlog.taskDirs && activeCustomEditorId != notewell.kanban",
+          "group": "navigation"
+        },
+        {
+          "command": "notewell.kanban.collapseAllCardBodies",
+          "when": "activeCustomEditorId == notewell.kanban",
+          "group": "1_kanban@1"
+        },
+        {
+          "command": "notewell.kanban.expandAllCardBodies",
+          "when": "activeCustomEditorId == notewell.kanban",
+          "group": "1_kanban@2"
+        }
+      ],
+      "commandPalette": [
+        {
+          "command": "notewell.kanban.openAsBoard",
+          "when": "resourceExtname == .md && activeCustomEditorId != notewell.kanban"
+        },
+        {
+          "command": "notewell.kanban.openAsText",
+          "when": "activeCustomEditorId == notewell.kanban"
+        },
+        {
+          "command": "notewell.kanban.newBoard"
+        },
+        {
+          "command": "notewell.kanban.collapseAllCardBodies",
+          "when": "activeCustomEditorId == notewell.kanban"
+        },
+        {
+          "command": "notewell.kanban.expandAllCardBodies",
+          "when": "activeCustomEditorId == notewell.kanban"
+        },
+        {
+          "command": "notewell.backlog.open",
+          "when": "notewell.backlog.detected"
+        },
+        {
+          "command": "notewell.backlog.addFolder",
+          "when": "config.notewell.backlog.enabled"
+        },
+        {
+          "command": "notewell.backlog.registerFolder",
+          "when": "false"
+        },
+        {
+          "command": "notewell.dailyNotes.openToday",
+          "when": "notewell.dailyNotes.available"
+        },
+        {
+          "command": "notewell.dailyNotes.openForDate",
+          "when": "notewell.dailyNotes.available"
+        },
+        {
+          "command": "notewell.templates.insert",
+          "when": "notewell.templates.available && editorLangId == markdown"
+        },
+        {
+          "command": "notewell.templates.insertDate",
+          "when": "notewell.templates.available && editorLangId == markdown"
+        },
+        {
+          "command": "notewell.templates.insertTime",
+          "when": "notewell.templates.available && editorLangId == markdown"
+        },
+        {
+          "command": "notewell.notes.createFromLink",
+          "when": "false"
+        }
+      ],
+      "explorer/context": [
+        {
+          "command": "notewell.kanban.newBoard",
+          "when": "explorerResourceIsFolder",
+          "group": "2_workspace"
+        },
+        {
+          "command": "notewell.backlog.open",
+          "when": "explorerResourceIsFolder && resourcePath in notewell.backlog.projectDirs",
+          "group": "2_workspace"
+        },
+        {
+          "command": "notewell.backlog.registerFolder",
+          "when": "explorerResourceIsFolder && config.notewell.backlog.enabled && !(resourcePath in notewell.backlog.projectDirs)",
+          "group": "2_workspace"
+        }
+      ]
+    },
+    "views": {
+      "explorer": [
+        {
+          "id": "notewell.backlinks",
+          "name": "%view.backlinks%",
+          "when": "notewell.backlinks.active"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "Notewell",
+      "properties": {
+        "notewell.kanban.enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "%config.kanban.enabled%",
+          "scope": "resource"
+        },
+        "notewell.kanban.saveOnEdit": {
+          "type": "boolean",
+          "default": true,
+          "scope": "resource",
+          "description": "%config.kanban.saveOnEdit%"
+        },
+        "notewell.kanban.doneLanes": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [],
+          "scope": "resource",
+          "description": "%config.kanban.doneLanes%"
+        },
+        "notewell.kanban.openBoardsByDefault": {
+          "type": "boolean",
+          "default": true,
+          "scope": "resource",
+          "description": "%config.kanban.openBoardsByDefault%"
+        },
+        "notewell.kanban.rememberBoards": {
+          "type": "boolean",
+          "default": true,
+          "scope": "application",
+          "description": "%config.kanban.rememberBoards%"
+        },
+        "notewell.kanban.style": {
+          "type": "string",
+          "enum": [
+            "vscode",
+            "obsidian",
+            "notewell"
+          ],
+          "enumDescriptions": [
+            "%config.kanban.style.vscode%",
+            "%config.kanban.style.obsidian%",
+            "%config.kanban.style.notewell%"
+          ],
+          "default": "vscode",
+          "scope": "resource",
+          "description": "%config.kanban.style%"
+        },
+        "notewell.kanban.cardBodies": {
+          "type": "string",
+          "enum": [
+            "expanded",
+            "collapsed"
+          ],
+          "enumDescriptions": [
+            "%config.kanban.cardBodies.expanded%",
+            "%config.kanban.cardBodies.collapsed%"
+          ],
+          "default": "expanded",
+          "scope": "resource",
+          "description": "%config.kanban.cardBodies%"
+        },
+        "notewell.kanban.cardPreview": {
+          "type": "boolean",
+          "default": true,
+          "scope": "resource",
+          "description": "%config.kanban.cardPreview%"
+        },
+        "notewell.canvas.enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "%config.canvas.enabled%",
+          "scope": "resource"
+        },
+        "notewell.canvas.editable": {
+          "type": "boolean",
+          "default": true,
+          "description": "%config.canvas.editable%",
+          "scope": "resource"
+        },
+        "notewell.canvas.snapToGrid": {
+          "type": "boolean",
+          "default": false,
+          "description": "%config.canvas.snapToGrid%",
+          "scope": "resource"
+        },
+        "notewell.linkPreview.enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "%config.linkPreview.enabled%"
+        },
+        "notewell.backlinks.unlinked": {
+          "type": "boolean",
+          "default": false,
+          "description": "%config.backlinks.unlinked%"
+        },
+        "notewell.links.enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "%config.links.enabled%"
+        },
+        "notewell.links.updateOnRename": {
+          "type": "string",
+          "enum": [
+            "obsidian",
+            "always",
+            "prompt",
+            "never"
+          ],
+          "enumDescriptions": [
+            "%config.links.updateOnRename.obsidian%",
+            "%config.links.updateOnRename.always%",
+            "%config.links.updateOnRename.prompt%",
+            "%config.links.updateOnRename.never%"
+          ],
+          "default": "obsidian",
+          "description": "%config.links.updateOnRename%"
+        },
+        "notewell.links.saveUpdatedFiles": {
+          "type": "boolean",
+          "default": false,
+          "description": "%config.links.saveUpdatedFiles%"
+        },
+        "notewell.links.createMissingNotes": {
+          "type": "string",
+          "enum": [
+            "ask",
+            "never"
+          ],
+          "enumDescriptions": [
+            "%config.links.createMissingNotes.ask%",
+            "%config.links.createMissingNotes.never%"
+          ],
+          "default": "ask",
+          "description": "%config.links.createMissingNotes%"
+        },
+        "notewell.attachments.enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "%config.attachments.enabled%"
+        },
+        "notewell.attachments.folder": {
+          "type": "string",
+          "default": "",
+          "description": "%config.attachments.folder%"
+        },
+        "notewell.backlog.enabled": {
+          "type": "boolean",
+          "default": true,
+          "scope": "window",
+          "description": "%config.backlog.enabled%"
+        },
+        "notewell.backlog.saveOnEdit": {
+          "type": "boolean",
+          "default": true,
+          "scope": "window",
+          "description": "%config.backlog.saveOnEdit%"
+        },
+        "notewell.backlog.detailPosition": {
+          "type": "string",
+          "enum": [
+            "bottom",
+            "right"
+          ],
+          "enumDescriptions": [
+            "%config.backlog.detailPosition.bottom%",
+            "%config.backlog.detailPosition.right%"
+          ],
+          "default": "bottom",
+          "scope": "window",
+          "description": "%config.backlog.detailPosition%"
+        },
+        "notewell.backlog.projects": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [],
+          "scope": "resource",
+          "description": "%config.backlog.projects%"
+        },
+        "notewell.dailyNotes.enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "%config.dailyNotes.enabled%"
+        },
+        "notewell.dailyNotes.dateLanguage": {
+          "type": "string",
+          "enum": [
+            "auto",
+            "en",
+            "ko"
+          ],
+          "enumDescriptions": [
+            "%config.dailyNotes.dateLanguage.auto%",
+            "%config.dailyNotes.dateLanguage.en%",
+            "%config.dailyNotes.dateLanguage.ko%"
+          ],
+          "default": "auto",
+          "scope": "resource",
+          "description": "%config.dailyNotes.dateLanguage%"
+        },
+        "notewell.templates.enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "%config.templates.enabled%"
+        }
+      }
+    }
+  },
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "typecheck": "tsc --noEmit && tsc --noEmit -p tsconfig.browser.json",
+    "test": "node --test \"test/**/*.test.ts\"",
+    "package": "vsce package --no-dependencies",
+    "vscode:prepublish": "node scripts/build.mjs --production"
+  },
+  "devDependencies": {
+    "@types/node": "24.19.2",
+    "@types/vscode": "1.100.0",
+    "@vscode/vsce": "4.0.0",
+    "esbuild": "0.28.2",
+    "typescript": "7.0.2"
+  }
+}

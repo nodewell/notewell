@@ -1,0 +1,34 @@
+{
+  "id": "TASK-2",
+  "title": "Render the board",
+  "status": "To Do",
+  "type": null,
+  "priority": "low",
+  "assignees": [],
+  "labels": [
+    "ui"
+  ],
+  "milestone": null,
+  "parentTaskId": null,
+  "references": [],
+  "modifiedFiles": [],
+  "documentation": [],
+  "dependencies": [
+    "TASK-1"
+  ],
+  "ordinal": 3000,
+  "dueDate": null,
+  "description": "A board with <b>HTML-like</b> text & symbols: < > \" ' and a very long line xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+  "acceptanceCriteria": [
+    {
+      "index": 1,
+      "text": "Shows `code` and **bold**",
+      "checked": false
+    }
+  ],
+  "definitionOfDone": [],
+  "implementationPlan": null,
+  "implementationNotes": null,
+  "comments": [],
+  "finalSummary": null
+}

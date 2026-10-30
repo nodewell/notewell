@@ -1,0 +1,30 @@
+{
+  "id": "TASK-1.1",
+  "title": "Write the parser",
+  "status": "To Do",
+  "type": null,
+  "priority": "medium",
+  "assignees": [],
+  "labels": [],
+  "milestone": null,
+  "parentTaskId": "TASK-1",
+  "references": [],
+  "modifiedFiles": [],
+  "documentation": [],
+  "dependencies": [],
+  "ordinal": 2000,
+  "dueDate": null,
+  "description": "Line-based parser.",
+  "acceptanceCriteria": [
+    {
+      "index": 1,
+      "text": "Parses frontmatter",
+      "checked": false
+    }
+  ],
+  "definitionOfDone": [],
+  "implementationPlan": null,
+  "implementationNotes": null,
+  "comments": [],
+  "finalSummary": null
+}

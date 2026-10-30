@@ -1,0 +1,32 @@
+{
+  "nodes": [
+    {
+      "id": "n1",
+      "type": "text",
+      "text": "Hello",
+      "x": 0,
+      "y": 0,
+      "width": 200,
+      "height": 100
+    },
+    {
+      "id": "n2",
+      "type": "link",
+      "url": "https://example.com/",
+      "x": 300,
+      "y": 0,
+      "width": 200,
+      "height": 100,
+      "color": "#FF8800"
+    }
+  ],
+  "edges": [
+    {
+      "id": "e1",
+      "fromNode": "n1",
+      "toNode": "n2",
+      "toEnd": "none",
+      "label": "see"
+    }
+  ]
+}

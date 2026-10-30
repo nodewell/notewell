@@ -1,0 +1,59 @@
+{
+  "id": "TASK-1",
+  "title": "Set up the build",
+  "status": "In Progress",
+  "type": "feature",
+  "priority": "high",
+  "assignees": [
+    "@alice"
+  ],
+  "labels": [
+    "build",
+    "infra"
+  ],
+  "milestone": "m-0",
+  "parentTaskId": null,
+  "references": [
+    "https://example.com/build"
+  ],
+  "modifiedFiles": [
+    "scripts/build.mjs"
+  ],
+  "documentation": [
+    "docs/build.md"
+  ],
+  "dependencies": [],
+  "ordinal": 1000,
+  "dueDate": null,
+  "description": "Compile with **esbuild** and run `tsc`.\n\n- first point\n- second point\n  - nested point\n\n```ts\nconst answer = 42; // <!-- SECTION:DESCRIPTION:END --> inside a fence\n```",
+  "acceptanceCriteria": [
+    {
+      "index": 1,
+      "text": "Build produces dist/",
+      "checked": true
+    },
+    {
+      "index": 2,
+      "text": "Typecheck passes",
+      "checked": false
+    }
+  ],
+  "definitionOfDone": [
+    {
+      "index": 1,
+      "text": "Docs updated",
+      "checked": false
+    }
+  ],
+  "implementationPlan": "1. Add script\n2. Wire CI",
+  "implementationNotes": "Started with esbuild.",
+  "comments": [
+    {
+      "index": 1,
+      "body": "Looks good so far",
+      "createdAt": "2026-10-14T09:49:00Z",
+      "author": "@bob"
+    }
+  ],
+  "finalSummary": null
+}

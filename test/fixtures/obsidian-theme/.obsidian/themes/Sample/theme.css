@@ -1,0 +1,59 @@
+/* Synthetic test theme for Notewell (not a real community theme).
+   Exercises the variable reading rules of core.md 3.6. */
+
+@import url("https://example.invalid/fonts.css");
+
+@font-face {
+  font-family: "Sample Sans";
+  src: url("sample.woff2");
+}
+
+body {
+  --radius-s: 6px;
+  --radius-m: 10px;
+  --font-text-theme: "Sample Sans", sans-serif;
+  /* body has lower weight than .theme-dark below */
+  --background-primary: #000000;
+}
+
+.theme-dark {
+  --sample-base: #1b2430;
+  --background-primary: var(--sample-base);
+  --background-primary-alt: #222c3a;
+  --background-secondary: #151c26;
+  --background-modifier-border: #2f3b4c;
+  --text-normal: #e6edf3;
+  --text-muted: #9aa7b4;
+  --text-faint: #6b7785;
+  --tag-background: color-mix(in srgb, var(--interactive-accent) 15%, transparent);
+  --tag-color: #9be3c0;
+}
+
+.theme-light {
+  --sample-base: #fbfaf7;
+  --background-primary: var(--sample-base);
+  --background-secondary: #f1eee8;
+  --text-normal: #2b2a28;
+}
+
+/* Only the dark media scheme counts for dark; other at-rules are skipped. */
+@media (prefers-color-scheme: dark) {
+  .theme-dark {
+    --text-highlight-bg: rgba(255, 200, 0, 0.35);
+  }
+}
+
+@media (max-width: 600px) {
+  body {
+    --radius-s: 2px;
+  }
+}
+
+/* Rules for other selectors are ignored. */
+.markdown-preview-view {
+  --background-primary: #ff0000;
+}
+
+body.theme-dark .workspace {
+  --text-normal: #ff0000;
+}

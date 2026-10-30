@@ -1,0 +1,134 @@
+{
+  "taskSets": {
+    "main": {
+      "1": [
+        null,
+        null
+      ],
+      "2": [
+        null,
+        "low"
+      ],
+      "3": [
+        null,
+        "high"
+      ],
+      "4": [
+        null,
+        "medium"
+      ],
+      "5": [
+        1000,
+        "low"
+      ],
+      "6": [
+        1000,
+        "high"
+      ],
+      "7": [
+        1000,
+        null
+      ],
+      "8": [
+        500,
+        null
+      ],
+      "9": [
+        null,
+        "HIGH"
+      ],
+      "10": [
+        null,
+        "weird"
+      ],
+      "11": [
+        1000,
+        "medium"
+      ],
+      "12": [
+        null,
+        "high"
+      ],
+      "13": [
+        0,
+        "low"
+      ],
+      "1.1": [
+        null,
+        null
+      ]
+    },
+    "tie": {
+      "1": [
+        1000,
+        null
+      ],
+      "2": [
+        1000,
+        "low"
+      ],
+      "3": [
+        null,
+        null
+      ],
+      "4": [
+        null,
+        "low"
+      ],
+      "5": [
+        1000,
+        "weird"
+      ],
+      "6": [
+        null,
+        "weird"
+      ],
+      "7": [
+        2000,
+        null
+      ],
+      "8": [
+        2000,
+        "weird"
+      ]
+    }
+  },
+  "cases": [
+    {
+      "name": "default",
+      "tasks": "main",
+      "config": null,
+      "order": "13 8 6 11 5 7 3 9 12 4 2 1 1.1 10"
+    },
+    {
+      "name": "empty list",
+      "tasks": "main",
+      "config": "priorities: []",
+      "order": "13 8 6 11 5 7 3 9 12 4 2 1 1.1 10"
+    },
+    {
+      "name": "custom",
+      "tasks": "main",
+      "config": "priorities: [\"Weird\", \"low\", \"High\"]",
+      "order": "13 8 5 6 7 11 10 2 3 9 12 1 1.1 4"
+    },
+    {
+      "name": "spaces and repeats",
+      "tasks": "main",
+      "config": "priorities: [\" weird \", \"LOW\", \"low\", \"high\"]",
+      "order": "13 8 5 6 7 11 10 2 3 9 12 1 1.1 4"
+    },
+    {
+      "name": "block list",
+      "tasks": "main",
+      "config": "priorities:\n  - medium\n  - high",
+      "order": "13 8 11 6 5 7 4 3 9 12 1 1.1 2 10"
+    },
+    {
+      "name": "none and unconfigured tie",
+      "tasks": "tie",
+      "config": "priorities:\n  - medium\n  - high",
+      "order": "1 2 5 7 8 3 4 6"
+    }
+  ]
+}

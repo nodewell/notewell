@@ -1,0 +1,1825 @@
+/*
+ * Backlog panel: toolbar, board, list and the task detail pane (backlog.md 4). Every color,
+ * radius and font comes from a --nw-* token (style-tokens.ts); the defaults below are VS Code
+ * theme variables only, so light, dark and high-contrast themes follow (backlog.md 6).
+ * Tinted pills mix a token toward transparent; their text uses the full-strength foreground.
+ * Long text always wraps (overflow-wrap: anywhere) and is never clipped.
+ * Scale: spacing 4/8/12/16/24px, type 11px (meta), 12px (body), 13px (titles).
+ */
+
+:root {
+  --nw-board-bg: var(--vscode-editor-background);
+  --nw-lane-bg: var(--vscode-sideBar-background, var(--vscode-editorWidget-background));
+  --nw-card-bg: var(--vscode-editor-background);
+  --nw-border: var(--vscode-widget-border, var(--vscode-panel-border));
+  --nw-hover-bg: var(--vscode-list-hoverBackground, var(--vscode-editor-background));
+  --nw-input-bg: var(--vscode-input-background);
+  --nw-input-border: var(--vscode-input-border, var(--vscode-widget-border));
+  --nw-input-fg: var(--vscode-input-foreground);
+  --nw-shadow: var(--vscode-widget-shadow, transparent);
+  --nw-popup-bg: var(--vscode-editorWidget-background);
+  --nw-popup-border: var(--vscode-editorWidget-border, var(--vscode-widget-border));
+  --nw-hover-border: var(--vscode-contrastActiveBorder, var(--vscode-editorWidget-border, var(--vscode-focusBorder)));
+  --nw-toolbar-hover: var(--vscode-toolbar-hoverBackground);
+  --nw-scrollbar: var(--vscode-scrollbarSlider-background);
+  --nw-scrollbar-hover: var(--vscode-scrollbarSlider-hoverBackground);
+  --nw-outline: var(--vscode-contrastBorder, transparent);
+  --nw-fg: var(--vscode-foreground);
+  --nw-fg-muted: var(--vscode-descriptionForeground);
+  --nw-link: var(--vscode-textLink-foreground);
+  --nw-link-active: var(--vscode-textLink-activeForeground);
+  --nw-accent: var(--vscode-button-background);
+  --nw-on-accent: var(--vscode-button-foreground);
+  --nw-focus: var(--vscode-focusBorder);
+  --nw-done: var(--vscode-charts-green);
+  --nw-info: var(--vscode-editorInfo-foreground);
+  --nw-error: var(--vscode-errorForeground);
+  --nw-date-today: var(--vscode-editorWarning-foreground);
+  --nw-menu-active-bg: var(--vscode-list-activeSelectionBackground, var(--vscode-list-hoverBackground));
+  --nw-menu-active-fg: var(--vscode-list-activeSelectionForeground, var(--vscode-foreground));
+  --nw-tag-bg: color-mix(in srgb, var(--vscode-charts-purple) 16%, transparent);
+  /* Text mixed toward the foreground: >= 4.5:1 on the tint (same mix as the kanban board). */
+  --nw-tag-fg: color-mix(in srgb, var(--vscode-charts-purple) 55%, var(--vscode-foreground));
+  --nw-code-bg: var(--vscode-textCodeBlock-background);
+  --nw-radius-card: 6px;
+  --nw-radius-lane: 8px;
+  --nw-font: var(--vscode-font-family);
+  --nw-font-mono: var(--vscode-editor-font-family);
+  --nw-font-size: 13px;
+}
+
+body {
+  background: var(--nw-board-bg);
+  color: var(--nw-fg);
+  font-family: var(--nw-font);
+  font-size: var(--nw-font-size);
+  line-height: 20px;
+}
+
+#app {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+
+/* Toolbar ----------------------------------------------------------------- */
+
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  padding: 12px 16px 8px;
+}
+
+/* The redrawn parts share the row with the persistent search box (render-board.ts). */
+.toolbar-parts {
+  display: contents;
+}
+
+.view-tabs {
+  order: 0;
+  display: inline-flex;
+  border: 1px solid var(--nw-border);
+  border-radius: var(--nw-radius-card);
+  overflow: hidden;
+}
+
+button.view-tab {
+  padding: 2px 12px;
+  border: none;
+  border-radius: 0;
+  background: transparent;
+  color: var(--nw-fg);
+}
+
+button.view-tab + button.view-tab {
+  border-left: 1px solid var(--nw-border);
+}
+
+button.view-tab:hover {
+  background: var(--nw-toolbar-hover);
+}
+
+button.view-tab.active {
+  background: var(--nw-accent);
+  color: var(--nw-on-accent);
+}
+
+/* High contrast: the active tab is also marked by an outline, not by color alone. */
+body.vscode-high-contrast button.view-tab.active,
+body.vscode-high-contrast-light button.view-tab.active {
+  outline: 1px solid var(--nw-hover-border);
+  outline-offset: -3px;
+}
+
+button.view-tab:focus-visible {
+  outline: 1px solid var(--nw-focus);
+  outline-offset: -2px;
+}
+
+.project-name {
+  order: 1;
+  min-width: 0;
+  max-width: 240px;
+  color: var(--nw-fg-muted);
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+
+input.search {
+  order: 2;
+  flex: 1 1 200px;
+  min-width: 160px;
+  max-width: 360px;
+  padding: 3px 8px;
+  border: 1px solid var(--nw-input-border);
+  border-radius: 2px;
+  background: var(--nw-input-bg);
+  color: var(--nw-input-fg);
+  font: inherit;
+}
+
+input.search:focus {
+  outline: 1px solid var(--nw-focus);
+  outline-offset: -1px;
+}
+
+.filters {
+  order: 3;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+select.filter {
+  max-width: 200px;
+  padding: 2px 4px;
+  border: 1px solid var(--nw-input-border);
+  border-radius: 2px;
+  background: var(--nw-input-bg);
+  color: var(--nw-input-fg);
+  font: inherit;
+  font-size: 12px;
+}
+
+/* Keyboard help: a quiet "?" whose text shows on hover or keyboard focus. */
+button.help {
+  order: 4;
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  margin-left: auto;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  color: inherit;
+  cursor: help;
+}
+
+.help-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border: 1px solid var(--nw-border);
+  border-radius: 50%;
+  color: var(--nw-fg-muted);
+  font-size: 11px;
+  line-height: 1;
+}
+
+.help:hover .help-icon {
+  color: var(--nw-fg);
+}
+
+.help-text {
+  position: absolute;
+  top: 28px;
+  right: 0;
+  z-index: 20;
+  width: max-content;
+  max-width: min(360px, 80vw);
+  padding: 8px 12px;
+  border: 1px solid var(--nw-popup-border);
+  border-radius: var(--nw-radius-card);
+  background: var(--nw-popup-bg);
+  color: var(--nw-fg);
+  font-size: 12px;
+  line-height: 18px;
+  text-align: left;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  box-shadow: 0 2px 8px var(--nw-shadow);
+  visibility: hidden;
+  opacity: 0;
+  transition: opacity 120ms ease-out;
+}
+
+.help:hover .help-text,
+.help:focus-visible .help-text {
+  visibility: visible;
+  opacity: 1;
+}
+
+/* Escape hides the tooltip until the pointer or focus leaves (WCAG 1.4.13). */
+.help.dismissed .help-text {
+  visibility: hidden;
+  opacity: 0;
+}
+
+.help:focus-visible {
+  outline: 1px solid var(--nw-focus);
+  outline-offset: 2px;
+}
+
+/* Notices ----------------------------------------------------------------- */
+
+.notices:empty {
+  display: none;
+}
+
+.notice {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin: 0 16px 8px;
+  padding: 8px 12px;
+  border: 1px solid var(--nw-border);
+  border-left: 3px solid var(--nw-info);
+  border-radius: var(--nw-radius-card);
+  background: var(--nw-popup-bg);
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+
+.notice[hidden] {
+  display: none;
+}
+
+.notice.error {
+  border-left-color: var(--nw-error);
+}
+
+.notice-text {
+  flex: 1;
+  min-width: 0;
+}
+
+button.notice-dismiss {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 24px;
+  min-height: 24px;
+  margin: -4px -6px -4px 0;
+  padding: 0;
+  border: none;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--nw-fg-muted);
+  font-size: 16px;
+  line-height: 1;
+}
+
+button.notice-dismiss:hover {
+  color: var(--nw-fg);
+  background: var(--nw-toolbar-hover);
+}
+
+/* Layout: content beside the detail pane; the pane overlays it on narrow panels. */
+
+.layout {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+}
+
+.content {
+  flex: 1;
+  min-width: 0;
+  overflow: auto;
+  scroll-padding: 8px;
+  padding: 0 16px 16px;
+  scrollbar-color: var(--nw-scrollbar) transparent;
+  scrollbar-gutter: stable;
+}
+
+/* A visible thumb, so columns past the edge are discoverable (also with the detail open). */
+.content::-webkit-scrollbar,
+.detail-pane::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+.content::-webkit-scrollbar-thumb,
+.detail-pane::-webkit-scrollbar-thumb {
+  background: var(--nw-scrollbar);
+  border-radius: 5px;
+}
+
+.content::-webkit-scrollbar-thumb:hover,
+.detail-pane::-webkit-scrollbar-thumb:hover {
+  background: var(--nw-scrollbar-hover);
+}
+
+/* Below (default) the panes stack; on the right they sit side by side (backlog.md 4.1). The
+   detail size is set by main.ts (flex-basis); these are the starting sizes before that. */
+.layout.position-bottom {
+  flex-direction: column;
+}
+
+.layout.position-right {
+  flex-direction: row;
+}
+
+.layout.position-bottom .content {
+  min-height: 120px;
+}
+
+.layout.position-right .content {
+  min-width: 120px;
+}
+
+.detail-pane {
+  flex: 0 0 auto;
+  min-width: 0;
+  min-height: 0;
+  overflow-y: auto;
+  background: var(--nw-board-bg);
+  scrollbar-color: var(--nw-scrollbar) transparent;
+}
+
+.layout.position-bottom .detail-pane {
+  flex-basis: 45%;
+  background: var(--nw-lane-bg);
+  box-shadow: 0 -1px 0 var(--nw-border);
+}
+
+/* R3: below, lines stay readable on wide panels. */
+.layout.position-bottom .detail-pane > .detail {
+  max-width: 960px;
+}
+
+/* Optional: below, the header (ID, title, status, Close) stays in reach while scrolling, but
+   only when the pane is tall enough for it not to crowd the fields. */
+.detail-pane {
+  container-type: size;
+}
+
+@container (min-height: 480px) {
+  .layout.position-bottom .detail-header {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    margin: -16px -16px 0;
+    padding: 16px 16px 12px;
+    /* The rule under the header stays within the field column (16px in from both sides). */
+    border-bottom: none;
+    background:
+      linear-gradient(var(--nw-border), var(--nw-border)) 16px 100% / calc(100% - 32px) 1px no-repeat,
+      var(--nw-lane-bg);
+  }
+}
+
+.layout.position-right .detail-pane {
+  flex-basis: min(560px, 48%);
+}
+
+/* Splitter: a 6px hit area with a 1px visible edge; the edge thickens on hover, focus and drag. */
+.splitter {
+  position: relative;
+  flex: 0 0 6px;
+  z-index: 2;
+  background: transparent;
+  touch-action: none;
+}
+
+.splitter[hidden] {
+  display: none;
+}
+
+.splitter::before {
+  content: '';
+  position: absolute;
+  background: var(--nw-border);
+  transition: background-color 100ms ease-out 300ms;
+}
+
+.layout.resizing .splitter::before {
+  transition: none;
+}
+
+.layout.position-bottom .splitter {
+  cursor: row-resize;
+}
+
+.layout.position-bottom .splitter::before {
+  left: 0;
+  right: 0;
+  top: 2px;
+  height: 1px;
+}
+
+.layout.position-right .splitter {
+  cursor: col-resize;
+}
+
+.layout.position-right .splitter::before {
+  top: 0;
+  bottom: 0;
+  left: 2px;
+  width: 1px;
+}
+
+.splitter:hover::before,
+.layout.resizing .splitter::before {
+  background: var(--nw-focus);
+}
+
+.layout.position-bottom .splitter:hover::before,
+.layout.position-bottom.resizing .splitter::before {
+  top: 1px;
+  height: 3px;
+}
+
+.layout.position-right .splitter:hover::before,
+.layout.position-right.resizing .splitter::before {
+  left: 1px;
+  width: 3px;
+}
+
+.splitter:focus-visible {
+  outline: 1px solid var(--nw-focus);
+  outline-offset: -1px;
+}
+
+/* High contrast: the edge is the contrast border, so the split stays visible. */
+body.vscode-high-contrast .splitter::before,
+body.vscode-high-contrast-light .splitter::before {
+  background: var(--nw-outline);
+}
+
+/* While dragging, text is not selected and the cursor stays the resize one everywhere. */
+.layout.resizing {
+  user-select: none;
+}
+
+.layout.resizing.position-bottom {
+  cursor: row-resize;
+}
+
+.layout.resizing.position-right {
+  cursor: col-resize;
+}
+
+/* Detail position buttons: a small layout picture each (board/list area + detail area). */
+.detail-position {
+  order: 4;
+  display: inline-flex;
+  margin-left: auto;
+  border: 1px solid var(--nw-border);
+  border-radius: var(--nw-radius-card);
+  overflow: hidden;
+}
+
+button.detail-position-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 24px;
+  padding: 0;
+  border: none;
+  border-radius: 0;
+  background: transparent;
+  color: var(--nw-fg-muted);
+}
+
+button.detail-position-button + button.detail-position-button {
+  border-left: 1px solid var(--nw-border);
+}
+
+button.detail-position-button:hover {
+  background: var(--nw-toolbar-hover);
+  color: var(--nw-fg);
+}
+
+button.detail-position-button.active {
+  background: var(--nw-accent);
+  color: var(--nw-on-accent);
+}
+
+body.vscode-high-contrast button.detail-position-button.active,
+body.vscode-high-contrast-light button.detail-position-button.active {
+  outline: 1px solid var(--nw-hover-border);
+  outline-offset: -3px;
+}
+
+button.detail-position-button:focus-visible {
+  outline: 1px solid var(--nw-focus);
+  outline-offset: -2px;
+}
+
+.layout-icon {
+  position: relative;
+  width: 14px;
+  height: 12px;
+  border: 1px solid currentColor;
+  border-radius: 2px;
+}
+
+.layout-icon::after {
+  content: '';
+  position: absolute;
+  background: currentColor;
+}
+
+.layout-icon-bottom::after {
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 4px;
+}
+
+.layout-icon-right::after {
+  top: 0;
+  bottom: 0;
+  right: 0;
+  width: 5px;
+}
+
+.detail-pane[hidden] {
+  display: none;
+}
+
+/* Narrow panels: on the right the detail covers the board/list; below it never overlays. */
+@media (max-width: 719px) {
+  .layout.position-right .detail-pane {
+    position: absolute;
+    inset: 0;
+    z-index: 10;
+    border-left: none;
+    box-shadow: 0 0 12px var(--nw-shadow);
+  }
+
+  .layout.position-right .splitter {
+    display: none;
+  }
+}
+
+.empty {
+  margin: 16px 0;
+  color: var(--nw-fg-muted);
+}
+
+/* Render cap (backlog.md 4.2, 4.3): draws the rest of a long column or list. */
+button.show-all {
+  display: block;
+  margin: 8px auto 12px;
+  padding: 2px 12px;
+  font-size: 12px;
+}
+
+button.show-all:focus-visible {
+  outline: 1px solid var(--nw-focus);
+  outline-offset: 2px;
+}
+
+/* Shared badges ------------------------------------------------------------- */
+
+.labels {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.label {
+  max-width: 100%;
+  padding: 0 6px;
+  border-radius: 10px;
+  background: var(--nw-tag-bg);
+  color: var(--nw-tag-fg);
+  font-size: 11px;
+  line-height: 18px;
+  overflow-wrap: anywhere;
+}
+
+body.vscode-high-contrast .label,
+body.vscode-high-contrast-light .label {
+  border: 1px solid var(--nw-outline);
+}
+
+.priority {
+  padding: 0 6px;
+  border: 1px solid var(--nw-border);
+  border-radius: 10px;
+  color: var(--nw-fg);
+  font-size: 11px;
+  line-height: 16px;
+  white-space: nowrap;
+}
+
+/* The level is in the text; the colored edge only adds to it. */
+.priority-high {
+  border-color: var(--nw-error);
+  background: color-mix(in srgb, var(--nw-error) 12%, transparent);
+}
+
+.priority-medium {
+  border-color: var(--nw-date-today);
+  background: color-mix(in srgb, var(--nw-date-today) 12%, transparent);
+}
+
+.priority-low {
+  border-color: var(--nw-border);
+}
+
+.duplicate {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  border: 1px solid var(--nw-error);
+  border-radius: 50%;
+  color: var(--nw-error);
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1;
+}
+
+.duplicate-note {
+  color: var(--nw-error);
+  font-size: 11px;
+  line-height: 16px;
+  overflow-wrap: anywhere;
+}
+
+.col-title .duplicate-note {
+  margin-top: 4px;
+}
+
+/* Board ------------------------------------------------------------------- */
+
+.board {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  min-height: 100%;
+}
+
+.column {
+  flex: 0 1 280px;
+  min-width: 220px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 8px;
+  border: 1px solid var(--nw-border);
+  border-radius: var(--nw-radius-lane);
+  background: var(--nw-lane-bg);
+}
+
+.column.other {
+  border-style: dashed;
+}
+
+.column.drop-target {
+  outline: 2px dashed var(--nw-focus);
+  outline-offset: -2px;
+}
+
+.column-header {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  padding: 0 4px;
+}
+
+.column-title {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 24px;
+  overflow-wrap: anywhere;
+}
+
+.column.done .column-title::before {
+  content: '';
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  margin-right: 6px;
+  border-radius: 50%;
+  background: var(--nw-done);
+  vertical-align: 1px;
+}
+
+.column-count {
+  color: var(--nw-fg-muted);
+  font-size: 11px;
+}
+
+.column-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-height: 24px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 8px 12px;
+  border: 1px solid var(--nw-border);
+  border-radius: var(--nw-radius-card);
+  background: var(--nw-card-bg);
+  box-shadow: 0 1px 2px var(--nw-shadow);
+  cursor: pointer;
+  transition: border-color 120ms ease-out, background-color 120ms ease-out;
+}
+
+.card:hover {
+  border-color: var(--nw-hover-border);
+  background: var(--nw-hover-bg);
+}
+
+/* High contrast: hover is dashed so it differs from the solid focus ring. */
+body.vscode-high-contrast .card:hover,
+body.vscode-high-contrast-light .card:hover {
+  border-style: dashed;
+}
+
+.card:focus,
+.card.selected {
+  outline: 1px solid var(--nw-focus);
+  outline-offset: 1px;
+}
+
+.card.selected {
+  border-color: var(--nw-focus);
+}
+
+.card.dragging {
+  opacity: 0.4;
+}
+
+/* Reorder within a column: a line where the card will land (4px gaps between cards). */
+.card.drop-before::before,
+.card.drop-after::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 2px;
+  border-radius: 1px;
+  background: var(--nw-focus);
+  pointer-events: none;
+}
+
+.card.drop-before::before {
+  top: -6px;
+}
+
+.card.drop-after::after {
+  bottom: -6px;
+}
+
+.card-top {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+
+.card-id {
+  color: var(--nw-fg-muted);
+  font-family: var(--nw-font-mono);
+  font-size: 11px;
+}
+
+/* Read-only card (backlog.md 4.4): a dashed outline, unlike the priority badges beside it. */
+.card-read-only {
+  padding: 0 6px;
+  border: 1px dashed var(--nw-fg-muted);
+  color: var(--nw-fg-muted);
+  border-radius: 8px;
+  font-size: 11px;
+  line-height: 16px;
+}
+
+.card-title {
+  font-size: var(--nw-font-size);
+  line-height: 20px;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.card-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 10px;
+  color: var(--nw-fg-muted);
+  font-size: 11px;
+  line-height: 16px;
+}
+
+.card-meta > span {
+  overflow-wrap: anywhere;
+}
+
+.card-ac.complete {
+  color: var(--nw-fg);
+}
+
+.card-ac.complete::before {
+  content: '';
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  margin-right: 4px;
+  border-radius: 50%;
+  background: var(--nw-done);
+  vertical-align: 1px;
+}
+
+.card-blocked {
+  color: var(--nw-error);
+  font-weight: 600;
+}
+
+/* List -------------------------------------------------------------------- */
+
+.task-table {
+  /* Sized by content, so on wide panels the columns stay next to a title capped at 60ch. */
+  width: auto;
+  min-width: min(100%, 720px);
+  border-collapse: collapse;
+  table-layout: auto;
+}
+
+.task-table th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  padding: 0;
+  border-bottom: 1px solid var(--nw-border);
+  background: var(--nw-board-bg);
+  text-align: left;
+  font-weight: 600;
+  font-size: 12px;
+}
+
+/* Once a column is resized every column keeps its width (main.ts sets the <col> widths). */
+.task-table.sized {
+  min-width: 0;
+  table-layout: fixed;
+}
+
+/* Narrow fixed columns wrap their short values instead of spilling into the next column. */
+.task-table.sized td {
+  white-space: normal;
+}
+
+.task-table.sized .priority,
+.task-table.sized .status.other {
+  display: inline-block;
+  max-width: 100%;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+.task-table.sized .sort-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/*
+ * Column width handle along the header's right edge: 8px hit area, a 2px line, focus ring.
+ * It stays inside its own header: every sticky th is a stacking context, so a handle that
+ * reached into the next header would be painted (and hit) under it.
+ */
+.col-resizer {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 8px;
+  cursor: col-resize;
+  touch-action: none;
+}
+
+.col-resizer::before {
+  content: '';
+  position: absolute;
+  top: 6px;
+  right: 0;
+  bottom: 6px;
+  width: 2px;
+  background: transparent;
+  transition: background-color 100ms ease-out 300ms;
+}
+
+.task-table th:hover .col-resizer::before {
+  background: var(--nw-border);
+}
+
+.col-resizer:hover::before,
+.col-resizer:focus-visible::before,
+.content.resizing-column .col-resizer::before {
+  background: var(--nw-focus);
+  transition: none;
+}
+
+.col-resizer:focus-visible {
+  outline: 1px solid var(--nw-focus);
+  outline-offset: -1px;
+}
+
+.content.resizing-column {
+  cursor: col-resize;
+  user-select: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .col-resizer::before {
+    transition: none;
+  }
+}
+
+button.sort {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  width: 100%;
+  padding: 6px 8px;
+  border: none;
+  background: transparent;
+  color: var(--nw-fg);
+  text-align: left;
+  font-weight: inherit;
+}
+
+button.sort:hover {
+  background: var(--nw-toolbar-hover);
+}
+
+button.sort:focus-visible {
+  outline: 1px solid var(--nw-focus);
+  outline-offset: -1px;
+}
+
+.sort-icon {
+  width: 0;
+  height: 0;
+  border-right: 4px solid transparent;
+  border-left: 4px solid transparent;
+}
+
+button.sort.ascending .sort-icon {
+  border-bottom: 5px solid var(--nw-fg);
+}
+
+button.sort.descending .sort-icon {
+  border-top: 5px solid var(--nw-fg);
+}
+
+.task-table td {
+  padding: 6px 8px;
+  border-bottom: 1px solid var(--nw-border);
+  vertical-align: top;
+  overflow-wrap: anywhere;
+}
+
+.row {
+  cursor: pointer;
+}
+
+.row:hover {
+  background: var(--nw-hover-bg);
+}
+
+.row:focus {
+  outline: 1px solid var(--nw-focus);
+  outline-offset: -1px;
+}
+
+.row.selected {
+  background: var(--nw-menu-active-bg);
+  color: var(--nw-menu-active-fg);
+}
+
+.col-id {
+  width: 1%;
+  color: var(--nw-fg-muted);
+  font-family: var(--nw-font-mono);
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.row.selected .col-id {
+  color: inherit;
+}
+
+.col-title {
+  /* Capped so on wide panels the other columns stay next to the titles. */
+  width: 60ch;
+  min-width: 200px;
+}
+
+/* Short values stay on one line so the title column takes the spare width. */
+.col-status,
+.col-priority {
+  white-space: nowrap;
+}
+
+.col-title .labels {
+  margin-top: 4px;
+}
+
+.row-title {
+  margin-right: 6px;
+  white-space: pre-wrap;
+}
+
+
+
+.col-status .status.other {
+  padding: 0 6px;
+  border: 1px dashed var(--nw-fg-muted);
+  border-radius: 10px;
+  font-style: italic;
+}
+
+.col-status .status.done::before {
+  content: '';
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  margin-right: 6px;
+  border-radius: 50%;
+  background: var(--nw-done);
+  vertical-align: 1px;
+}
+
+/* Detail pane (render-detail.ts) -------------------------------------------- */
+
+.detail {
+  padding: 16px;
+  overflow-wrap: anywhere;
+}
+
+.detail-header {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--nw-border);
+}
+
+.detail-heading {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.detail-id {
+  color: var(--nw-fg-muted);
+  font-family: var(--nw-font-mono);
+  font-size: 12px;
+}
+
+.detail-title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 24px;
+}
+
+.detail-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  font-size: 12px;
+}
+
+.detail-meta-label {
+  color: var(--nw-fg-muted);
+}
+
+select.detail-status {
+  padding: 2px 4px;
+  border: 1px solid var(--nw-input-border);
+  border-radius: 2px;
+  background: var(--nw-input-bg);
+  color: var(--nw-input-fg);
+  font: inherit;
+}
+
+.detail-priority {
+  padding: 0 6px;
+  border: 1px solid var(--nw-border);
+  border-radius: 10px;
+  font-size: 11px;
+  line-height: 16px;
+}
+
+.detail-priority-high {
+  border-color: var(--nw-error);
+  background: color-mix(in srgb, var(--nw-error) 12%, transparent);
+}
+
+.detail-priority-medium {
+  border-color: var(--nw-date-today);
+  background: color-mix(in srgb, var(--nw-date-today) 12%, transparent);
+}
+
+.detail-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+button.detail-close {
+  border-color: var(--nw-border);
+  background: transparent;
+  color: var(--nw-fg);
+}
+
+button.detail-close:hover {
+  background: var(--nw-toolbar-hover);
+}
+
+.detail-notice,
+.detail-note {
+  margin: 12px 0 0;
+  padding: 6px 10px;
+  border-left: 3px solid var(--nw-info);
+  background: var(--nw-popup-bg);
+  font-size: 12px;
+}
+
+/* Read-only task (backlog.md 4.4): shown before anything is tried, so it stands out more than a
+   note. The warning colour is the one medium priority uses (no separate token, kanban.md 3.1). */
+.detail-notice.detail-read-only {
+  padding: 8px 12px;
+  border: 1px solid var(--nw-date-today);
+  border-left-width: 4px;
+  border-radius: var(--nw-radius-card);
+  background: color-mix(in srgb, var(--nw-date-today) 10%, var(--nw-popup-bg));
+  font-size: 13px;
+}
+
+.detail-read-only-label {
+  display: block;
+  margin-bottom: 2px;
+}
+
+.detail-fields {
+  display: grid;
+  grid-template-columns: max-content minmax(0, 1fr);
+  gap: 6px 12px;
+  margin: 12px 0 0;
+  font-size: 12px;
+}
+
+.detail-fields dt {
+  color: var(--nw-fg-muted);
+}
+
+.detail-fields dd {
+  min-width: 0;
+  margin: 0;
+}
+
+.detail-values {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 8px;
+}
+
+.detail-labels .detail-label {
+  padding: 0 6px;
+  border-radius: 10px;
+  background: var(--nw-tag-bg);
+  color: var(--nw-tag-fg);
+  font-size: 11px;
+}
+
+.detail-task-links {
+  flex-direction: column;
+}
+
+.detail-task-link,
+.detail-url,
+.detail-path,
+.md-link {
+  color: var(--nw-link);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  cursor: pointer;
+}
+
+.detail-task-link:hover,
+.detail-url:hover,
+.detail-path:hover,
+.md-link:hover {
+  color: var(--nw-link-active);
+}
+
+.detail-task-link:focus-visible,
+.detail-url:focus-visible,
+.detail-path:focus-visible,
+.md-link:focus-visible {
+  outline: 1px solid var(--nw-focus);
+  outline-offset: 1px;
+}
+
+.detail-task-missing {
+  color: var(--nw-fg-muted);
+}
+
+/* An archived task link (backlog.md 3.1): the link, then a muted tag that may wrap below it. */
+.detail-task-archived {
+  display: inline-flex;
+  flex-wrap: wrap;
+  column-gap: 4px;
+  min-width: 0;
+}
+
+.detail-archived-tag {
+  color: var(--nw-fg-muted);
+}
+
+.detail-path {
+  font-family: var(--nw-font-mono);
+}
+
+.detail-section {
+  margin-top: 24px;
+}
+
+/*
+ * Section titles are the top level of the body: a band tinted from the foreground, so it shows
+ * on both pane backgrounds (--nw-lane-bg below, --nw-board-bg on the right), outlined in high contrast, and
+ * larger than any markdown heading inside the section (.md-h1 is 14px). With an Edit button the
+ * band is the whole head row, so the button sits on the title's line.
+ */
+.detail-section > .detail-section-title,
+.detail-section-head {
+  margin: 0 0 10px;
+  padding: 4px 8px;
+  border: 1px solid var(--nw-outline);
+  border-radius: 4px;
+  background: color-mix(in srgb, var(--nw-fg) 7%, transparent);
+}
+
+.detail-section-title {
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 24px;
+  text-transform: none;
+}
+
+.detail-checklist {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.detail-check-item + .detail-check-item {
+  margin-top: 4px;
+}
+
+.detail-check {
+  display: grid;
+  grid-template-columns: auto auto minmax(0, 1fr);
+  gap: 6px;
+  align-items: start;
+  cursor: pointer;
+}
+
+.detail-checkbox {
+  margin: 3px 0 0;
+  accent-color: var(--nw-accent);
+}
+
+body.vscode-high-contrast .detail-checkbox,
+body.vscode-high-contrast-light .detail-checkbox {
+  accent-color: var(--nw-outline);
+}
+
+.detail-check-number {
+  color: var(--nw-fg-muted);
+  font-family: var(--nw-font-mono);
+  font-size: 12px;
+}
+
+.detail-check-checked .detail-check-text {
+  color: var(--nw-fg-muted);
+}
+
+.detail-check-text .md p {
+  margin: 0;
+}
+
+.detail-comment + .detail-comment {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--nw-border);
+}
+
+.detail-comment-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  color: var(--nw-fg-muted);
+  font-size: 12px;
+}
+
+.detail-comment-author {
+  color: var(--nw-fg);
+  font-weight: 600;
+}
+
+.detail-other-field {
+  margin: 0 0 6px;
+  padding: 6px 8px;
+  border-radius: 4px;
+  background: var(--nw-code-bg);
+  font-family: var(--nw-font-mono);
+  font-size: 12px;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+/* Markdown (src/webview/markdown-render.ts) ------------------------------ */
+
+.md {
+  overflow-wrap: anywhere;
+}
+
+.md > :first-child {
+  margin-top: 0;
+}
+
+.md > :last-child {
+  margin-bottom: 0;
+}
+
+.md-paragraph {
+  margin: 0 0 8px;
+}
+
+.md-heading {
+  margin: 12px 0 6px;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+/* Below the section titles (15px): # is 14px, the rest body size, lower levels muted. */
+.md-h1 {
+  font-size: 14px;
+}
+
+.md-h2,
+.md-h3 {
+  font-size: 13px;
+}
+
+.md-h4,
+.md-h5,
+.md-h6 {
+  color: var(--nw-fg-muted);
+  font-size: 13px;
+}
+
+.md-list {
+  margin: 0 0 8px;
+  padding-left: 22px;
+}
+
+.md-item > .md-list {
+  margin-bottom: 0;
+}
+
+.md-item > .md-paragraph,
+.md-item > .md-code {
+  margin: 4px 0;
+}
+
+.md-task {
+  list-style: none;
+}
+
+.md-checkbox {
+  margin: 0 6px 0 -18px;
+  vertical-align: -2px;
+}
+
+.md-task-checked > .md-item-text {
+  color: var(--nw-fg-muted);
+}
+
+.md-quote {
+  margin: 0 0 8px;
+  padding: 0 0 0 12px;
+  border-left: 3px solid var(--nw-border);
+  color: var(--nw-fg-muted);
+}
+
+.md-rule {
+  margin: 12px 0;
+  border: none;
+  border-top: 1px solid var(--nw-border);
+}
+
+.md-code {
+  margin: 0 0 8px;
+  border-radius: 4px;
+  background: var(--nw-code-bg);
+}
+
+.md-code-lang {
+  display: block;
+  padding: 4px 10px 0;
+  /* Muted text on the code tint is below 4.5:1 in Light Modern (4.36). */
+  color: var(--nw-fg);
+  font-size: 11px;
+}
+
+pre.md-code-block {
+  margin: 0;
+  padding: 8px 10px;
+  font-family: var(--nw-font-mono);
+  font-size: 12px;
+  line-height: 18px;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+/* Tables: cells wrap long text; a table that still does not fit scrolls sideways in its wrapper. */
+.md-table-wrap {
+  margin: 0 0 8px;
+  overflow-x: auto;
+  scrollbar-color: var(--nw-scrollbar) transparent;
+}
+
+.md-table {
+  border-collapse: collapse;
+  font-size: 12px;
+  line-height: 18px;
+}
+
+.md-table th,
+.md-table td {
+  /*
+   * Text wraps between words; words stay whole (break-word, unlike the rest of .md), so a
+   * column is never narrower than its longest word and a table that cannot fit scrolls instead
+   * of splitting words letter by letter. Nothing is clipped either way.
+   */
+  padding: 4px 8px;
+  border: 1px solid var(--nw-border);
+  text-align: left;
+  vertical-align: top;
+  overflow-wrap: break-word;
+}
+
+.md-table th {
+  background: color-mix(in srgb, var(--nw-fg) 7%, transparent);
+  font-weight: 600;
+}
+
+.md-table .md-align-center {
+  text-align: center;
+}
+
+.md-table .md-align-right {
+  text-align: right;
+}
+
+pre.md-code-block code {
+  background: transparent;
+}
+
+.md-code-span {
+  padding: 0 3px;
+  border-radius: 3px;
+  background: var(--nw-code-bg);
+  font-family: var(--nw-font-mono);
+  font-size: 12px;
+}
+
+.md-link-inert {
+  text-decoration: underline dotted;
+}
+
+.md-image {
+  font-style: italic;
+  color: var(--nw-fg-muted);
+}
+
+.md-image::before {
+  content: '[';
+}
+
+.md-image::after {
+  content: ']';
+}
+
+/* Detail editors (backlog.md 5.4) ---------------------------------------------- */
+
+.detail-title.editable {
+  border-radius: 4px;
+  cursor: text;
+}
+
+.detail-title.editable:hover {
+  background: var(--nw-hover-bg);
+  outline: 1px dashed var(--nw-border);
+  outline-offset: 2px;
+}
+
+.detail-title.editable:focus-visible {
+  outline: 1px solid var(--nw-focus);
+  outline-offset: 2px;
+}
+
+/* "Edit" after the title on hover and focus (text from data-hint, localized). */
+.detail-title.editable:hover::after,
+.detail-title.editable:focus-visible::after {
+  content: attr(data-hint);
+  margin-left: 8px;
+  padding: 0 6px;
+  border: 1px solid var(--nw-border);
+  border-radius: 4px;
+  color: var(--nw-fg-muted);
+  font-size: 11px;
+  font-weight: normal;
+  vertical-align: 3px;
+}
+
+.detail-title-edit {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+input.detail-title-input {
+  flex: 1 1 240px;
+  min-width: 0;
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 24px;
+}
+
+input.detail-title-input,
+input.detail-chip-input,
+input.detail-date-input,
+textarea.detail-section-input,
+textarea.detail-comment-input,
+select.detail-select {
+  padding: 3px 6px;
+  border: 1px solid var(--nw-input-border);
+  border-radius: 2px;
+  background: var(--nw-input-bg);
+  color: var(--nw-input-fg);
+  font: inherit;
+}
+
+input.detail-title-input:focus,
+input.detail-chip-input:focus,
+input.detail-date-input:focus,
+textarea.detail-section-input:focus,
+textarea.detail-comment-input:focus,
+select.detail-select:focus {
+  outline: 1px solid var(--nw-focus);
+  outline-offset: -1px;
+}
+
+textarea.detail-section-input,
+textarea.detail-comment-input {
+  display: block;
+  width: 100%;
+  min-height: 72px;
+  font-family: var(--nw-font-mono);
+  font-size: 12px;
+  line-height: 18px;
+  resize: vertical;
+}
+
+select.detail-select {
+  max-width: 100%;
+  font-size: 12px;
+}
+
+.detail-meta select.detail-select {
+  padding: 2px 4px;
+}
+
+.detail-edit-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+button.detail-cancel,
+button.detail-edit,
+button.detail-add-section {
+  border-color: var(--nw-border);
+  background: transparent;
+  color: var(--nw-fg);
+}
+
+button.detail-cancel:hover,
+button.detail-edit:hover,
+button.detail-add-section:hover {
+  background: var(--nw-toolbar-hover);
+}
+
+/* Disabled, but still legible: muted text on no fill instead of a faded button. */
+button.detail-save:disabled,
+button.detail-add-comment:disabled {
+  border-color: var(--nw-border);
+  background: transparent;
+  color: var(--nw-fg-muted);
+  cursor: default;
+}
+
+.detail-edit-hint {
+  color: var(--nw-fg-muted);
+  font-size: 11px;
+}
+
+.detail-section-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.detail-section-head .detail-section-title {
+  flex: 1;
+  margin: 0;
+}
+
+button.detail-edit {
+  padding: 0 8px;
+  font-size: 12px;
+  line-height: 20px;
+}
+
+.detail-add-sections {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+button.detail-add-section {
+  padding: 2px 10px;
+  border-style: dashed;
+  border-color: var(--nw-fg-muted);
+  font-size: 12px;
+}
+
+.detail-field-edit {
+  min-width: 0;
+}
+
+.detail-chips {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 6px;
+}
+
+.detail-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  max-width: 100%;
+  padding: 0 0 0 6px;
+  /* The border is the chip's only edge: muted text color mixed for >= 3:1 (4.4 Dark, 3.3 Light Modern). */
+  border: 1px solid color-mix(in srgb, var(--nw-fg-muted) 80%, transparent);
+  border-radius: 10px;
+  background: var(--nw-lane-bg);
+  font-size: 12px;
+  line-height: 20px;
+  overflow-wrap: anywhere;
+}
+
+/* A label chip keeps the label look; the chip border marks it as removable. */
+.detail-chip .detail-label {
+  padding: 0 4px;
+  border-radius: 8px;
+  background: var(--nw-tag-bg);
+  color: var(--nw-tag-fg);
+  font-size: 11px;
+}
+
+button.detail-chip-remove {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 24px;
+  min-height: 20px;
+  padding: 0;
+  border: none;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--nw-fg-muted);
+  font-size: 14px;
+  line-height: 1;
+}
+
+button.detail-chip-remove:hover {
+  background: var(--nw-toolbar-hover);
+  color: var(--nw-fg);
+}
+
+button.detail-chip-remove:focus-visible {
+  outline: 1px solid var(--nw-focus);
+  outline-offset: -1px;
+}
+
+input.detail-chip-input {
+  flex: 1 1 160px;
+  min-width: 120px;
+  font-size: 12px;
+}
+
+/* A field with a validation error (the message is the input's aria-describedby). */
+input[aria-invalid='true'],
+input[aria-invalid='true']:focus,
+textarea[aria-invalid='true'],
+textarea[aria-invalid='true']:focus {
+  border-color: var(--nw-error);
+  outline-color: var(--nw-error);
+}
+
+.detail-field-error {
+  margin: 4px 0 0;
+  color: var(--nw-error);
+  font-size: 12px;
+}
+
+.detail-comment-new {
+  margin-top: 12px;
+}
+
+body.vscode-high-contrast .detail-chip,
+body.vscode-high-contrast-light .detail-chip {
+  border-color: var(--nw-outline);
+}
+
+/* Inside a chip the chip's edge is enough; no second outline around the label. */
+body.vscode-high-contrast .detail-chip .detail-label,
+body.vscode-high-contrast-light .detail-chip .detail-label {
+  border: none;
+}
+
+body.vscode-high-contrast .detail-label,
+body.vscode-high-contrast-light .detail-label,
+body.vscode-high-contrast .md-code,
+body.vscode-high-contrast-light .md-code,
+body.vscode-high-contrast pre.md-table,
+body.vscode-high-contrast-light pre.md-table,
+body.vscode-high-contrast .md-code-span,
+body.vscode-high-contrast-light .md-code-span,
+body.vscode-high-contrast .detail-other-field,
+body.vscode-high-contrast-light .detail-other-field {
+  border: 1px solid var(--nw-outline);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card,
+  .help-text,
+  .splitter::before {
+    transition: none;
+  }
+}
+
+/* The position buttons take the free space; the help button sits right after them. */
+.detail-position ~ button.help {
+  margin-left: 0;
+}

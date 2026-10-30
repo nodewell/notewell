@@ -1,0 +1,1676 @@
+/*
+ * Kanban board. Every color, radius and font comes from a --nw-* style token
+ * (style-tokens.ts, kanban.md 3.1). The defaults below are the Notewell style: VS Code
+ * theme variables only, so light, dark and high-contrast themes follow automatically.
+ * The Obsidian style replaces token values at runtime (validated, style.setProperty).
+ * Colors mixed here (pills, chips) mix tokens so their text stays >= 4.5:1.
+ * Scale: spacing 4/8/12/16/24px, type 11px (meta), 12px (body), 13px (titles).
+ */
+
+/* Token defaults (Notewell style) ---------------------------------------- */
+
+:root {
+  --nw-board-bg: var(--vscode-editor-background);
+  --nw-lane-bg: var(--vscode-sideBar-background, var(--vscode-editorWidget-background));
+  --nw-card-bg: var(--vscode-editor-background);
+  --nw-border: var(--vscode-widget-border, var(--vscode-panel-border));
+  --nw-hover-bg: var(--vscode-list-hoverBackground, var(--vscode-editor-background));
+  --nw-input-bg: var(--vscode-input-background);
+  --nw-input-border: var(--vscode-input-border, var(--vscode-widget-border));
+  --nw-shadow: var(--vscode-widget-shadow, transparent);
+  --nw-popup-bg: var(--vscode-editorWidget-background);
+  --nw-popup-border: var(--vscode-editorWidget-border, var(--vscode-widget-border));
+  --nw-hover-border: var(--vscode-contrastActiveBorder, var(--vscode-editorWidget-border, var(--vscode-focusBorder)));
+  --nw-toolbar-hover: var(--vscode-toolbar-hoverBackground);
+  --nw-scrollbar: var(--vscode-scrollbarSlider-background);
+  --nw-scrollbar-hover: var(--vscode-scrollbarSlider-hoverBackground);
+  --nw-outline: var(--vscode-contrastBorder, transparent);
+  --nw-fg: var(--vscode-foreground);
+  --nw-fg-muted: var(--vscode-descriptionForeground);
+  --nw-fg-faint: var(--vscode-disabledForeground);
+  --nw-link: var(--vscode-textLink-foreground);
+  --nw-link-active: var(--vscode-textLink-activeForeground);
+  --nw-input-fg: var(--vscode-input-foreground);
+  --nw-accent: var(--vscode-button-background);
+  --nw-on-accent: var(--vscode-button-foreground);
+  --nw-focus: var(--vscode-focusBorder);
+  --nw-done: var(--vscode-charts-green);
+  --nw-info: var(--vscode-editorInfo-foreground);
+  --nw-error: var(--vscode-errorForeground);
+  --nw-menu-bg: var(--vscode-menu-background, var(--vscode-editorWidget-background));
+  --nw-menu-fg: var(--vscode-menu-foreground, var(--vscode-foreground));
+  --nw-menu-border: var(--vscode-menu-border, var(--vscode-editorWidget-border, transparent));
+  --nw-menu-separator: var(--vscode-menu-separatorBackground, var(--vscode-widget-border, transparent));
+  --nw-menu-active-bg: var(--vscode-menu-selectionBackground, var(--vscode-list-activeSelectionBackground, transparent));
+  --nw-menu-active-fg: var(--vscode-menu-selectionForeground, var(--vscode-list-activeSelectionForeground, var(--vscode-foreground)));
+  --nw-menu-active-border: var(--vscode-menu-selectionBorder, var(--vscode-contrastActiveBorder, transparent));
+  --nw-tag-bg: color-mix(in srgb, var(--vscode-charts-purple) 16%, transparent);
+  /* Text mixed toward the foreground: >= 4.5:1 on the tint in Dark/Light Modern and HC (5.71, 7.82, 10.13). */
+  --nw-tag-fg: color-mix(in srgb, var(--vscode-charts-purple) 55%, var(--vscode-foreground));
+  --nw-date: var(--vscode-charts-blue);
+  --nw-date-past: var(--vscode-errorForeground);
+  --nw-date-today: var(--vscode-editorWarning-foreground);
+  --nw-highlight-bg: color-mix(in srgb, var(--vscode-charts-yellow) 25%, transparent);
+  --nw-code-bg: var(--vscode-textCodeBlock-background);
+  --nw-radius-card: 6px;
+  --nw-radius-lane: 8px;
+  --nw-font: var(--vscode-font-family);
+  --nw-font-mono: var(--vscode-editor-font-family);
+  --nw-font-size: 13px;
+}
+
+/* Native controls follow the style's scheme (obsidian and notewell styles set it). */
+body[data-scheme='dark'] {
+  color-scheme: dark;
+}
+
+body[data-scheme='light'] {
+  color-scheme: light;
+}
+
+body {
+  background: var(--nw-board-bg);
+  color: var(--nw-fg);
+  font-family: var(--nw-font);
+}
+
+/* Board ------------------------------------------------------------------ */
+
+.board-root {
+  padding: 12px 16px 16px;
+  font-size: var(--nw-font-size);
+  line-height: 20px;
+}
+
+.board-toolbar {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 4px;
+  margin-bottom: 8px;
+}
+
+/*
+ * Width slider (kanban.md 4.10): a dimension line in the same ink as the check box switch.
+ * The thumb is a hollow box until it is held or has keyboard focus, then solid. Nothing here
+ * needs the accent to be seen: it can match the board, and it does in High Contrast Dark.
+ * Sizes are odd so the line, end ticks and thumb share one center.
+ */
+input.board-lane-width {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 96px;
+  height: 24px;
+  margin: 0 4px 0 0;
+  padding: 0;
+  border: none;
+  border-radius: var(--nw-radius-card);
+  background: transparent;
+  color: var(--nw-fg-muted);
+  cursor: ew-resize;
+  forced-color-adjust: none; /* Forced colors would drop the track's gradients. */
+}
+
+input.board-lane-width:hover,
+input.board-lane-width:active,
+input.board-lane-width:focus-visible {
+  color: var(--nw-fg);
+}
+
+input.board-lane-width:focus-visible {
+  outline: 1px solid var(--nw-focus);
+  outline-offset: 2px;
+}
+
+input.board-lane-width::-webkit-slider-runnable-track {
+  height: 9px;
+  background:
+    linear-gradient(currentColor, currentColor) left / 1px 100% no-repeat,
+    linear-gradient(currentColor, currentColor) right / 1px 100% no-repeat,
+    linear-gradient(currentColor, currentColor) center / 100% 1px no-repeat;
+}
+
+input.board-lane-width::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  box-sizing: border-box;
+  width: 8px;
+  height: 13px;
+  margin-top: -2px;
+  border: 1px solid currentColor;
+  border-radius: 3px;
+  background: var(--nw-board-bg);
+}
+
+input.board-lane-width:active::-webkit-slider-thumb,
+input.board-lane-width:focus-visible::-webkit-slider-thumb {
+  background: currentColor;
+}
+
+/* Check box switch (kanban.md 4.9): a small box, ticked while card check boxes show. */
+button.board-checkboxes {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: none;
+  border-radius: var(--nw-radius-card);
+  background: transparent;
+  color: var(--nw-fg-muted);
+  cursor: pointer;
+}
+
+button.board-checkboxes:hover {
+  color: var(--nw-fg);
+  background: var(--nw-hover-bg);
+}
+
+button.board-checkboxes:focus-visible {
+  outline: 1px solid var(--nw-focus);
+  outline-offset: 1px;
+}
+
+.board-checkboxes-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 14px;
+  height: 14px;
+  border: 1px solid currentColor;
+  border-radius: 3px;
+  font-size: 11px;
+  line-height: 1;
+}
+
+button.board-checkboxes[aria-pressed='true'] .board-checkboxes-icon {
+  border-color: var(--nw-accent);
+  background: var(--nw-accent);
+  color: var(--nw-on-accent);
+}
+
+body.vscode-high-contrast button.board-checkboxes[aria-pressed='true'] .board-checkboxes-icon {
+  border-color: var(--nw-outline);
+  background: transparent;
+  color: var(--nw-fg);
+}
+
+.card-check-space {
+  width: 14px;
+}
+
+.board {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  overflow-x: auto;
+  padding-bottom: 12px;
+  scrollbar-color: var(--nw-scrollbar) transparent;
+}
+
+.board::-webkit-scrollbar {
+  height: 10px;
+}
+
+.board::-webkit-scrollbar-thumb {
+  background: var(--nw-scrollbar);
+  border-radius: 5px;
+}
+
+.board::-webkit-scrollbar-thumb:hover {
+  background: var(--nw-scrollbar-hover);
+}
+
+/* Help: a quiet "?" whose text shows on hover or keyboard focus. */
+button.board-help {
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: inherit;
+  cursor: help;
+}
+
+.board-help {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+}
+
+.board-help-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border: 1px solid var(--nw-border);
+  border-radius: 50%;
+  color: var(--nw-fg-muted);
+  font-size: 11px;
+  line-height: 1;
+  cursor: help;
+}
+
+.board-help:hover .board-help-icon {
+  color: var(--nw-fg);
+}
+
+.board-help-text {
+  position: absolute;
+  top: 28px;
+  right: 0;
+  z-index: 10;
+  width: max-content;
+  max-width: 320px;
+  padding: 8px 12px;
+  border: 1px solid var(--nw-popup-border);
+  border-radius: var(--nw-radius-card);
+  background: var(--nw-popup-bg);
+  color: var(--nw-fg);
+  font-size: 12px;
+  font-weight: normal;
+  line-height: 18px;
+  text-align: left;
+  box-shadow: 0 2px 8px var(--nw-shadow);
+  visibility: hidden;
+  opacity: 0;
+  transition: opacity 120ms ease-out;
+}
+
+.board-help:hover .board-help-text,
+.board-help:focus-visible .board-help-text {
+  visibility: visible;
+  opacity: 1;
+}
+
+/* Escape hides the tooltip until the pointer or focus leaves (WCAG 1.4.13). */
+.board-help.dismissed .board-help-text {
+  visibility: hidden;
+  opacity: 0;
+}
+
+.board-help:focus-visible {
+  outline: 1px solid var(--nw-focus);
+  outline-offset: 2px;
+}
+
+.notice {
+  margin: 0 0 12px;
+  padding: 8px 12px;
+  border: 1px solid var(--nw-border);
+  border-left: 3px solid var(--nw-info);
+  border-radius: var(--nw-radius-card);
+  background: var(--nw-popup-bg);
+  font-size: 12px;
+}
+
+.notice.error {
+  border-left-color: var(--nw-error);
+}
+
+/* Lanes ------------------------------------------------------------------ */
+
+/* The width is the outer width, border included, as Obsidian's lane-width (kanban.md 4.10). */
+.lane {
+  position: relative;
+  box-sizing: border-box;
+  flex: 0 0 var(--nw-lane-width, 272px);
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 8px;
+  border: 1px solid var(--nw-border);
+  border-radius: var(--nw-radius-lane);
+  background: var(--nw-lane-bg);
+}
+
+/* Collapsed lanes keep their own width (Obsidian ignores lane-width for them too). */
+.lane.collapsed {
+  flex-basis: 198px;
+  max-width: 198px;
+}
+
+.lane-header {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 28px;
+  padding: 0 4px 0 0;
+  cursor: grab;
+}
+
+button.lane-collapse {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: none;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--nw-fg-muted);
+}
+
+button.lane-collapse:hover {
+  background: var(--nw-toolbar-hover);
+  color: var(--nw-fg);
+}
+
+/* Thin chevron (as in the card menu), weighed against the 13px/600 lane title. */
+.lane-collapse-icon {
+  display: block;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 16px;
+  width: 16px;
+  text-align: center;
+  transition: transform 120ms ease-out;
+}
+
+button.lane-collapse[aria-expanded='true'] .lane-collapse-icon {
+  transform: rotate(90deg);
+}
+
+/* main.ts: the redrawn button starts at the previous angle so the turn shows. */
+button.lane-collapse.turn-from .lane-collapse-icon {
+  transition: none;
+}
+
+button.lane-collapse.turn-from[aria-expanded='true'] .lane-collapse-icon {
+  transform: none;
+}
+
+button.lane-collapse.turn-from[aria-expanded='false'] .lane-collapse-icon {
+  transform: rotate(90deg);
+}
+
+.lane-title {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  padding: 2px 4px;
+  border-radius: 4px;
+  font-size: var(--nw-font-size);
+  font-weight: 600;
+  line-height: 20px;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.lane.collapsed .lane-title {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.lane-done,
+.lane-count {
+  flex: none;
+}
+
+.lane-title:focus-visible {
+  outline: 1px solid var(--nw-focus);
+  outline-offset: 0;
+}
+
+.lane-done {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--nw-done) 20%, transparent);
+  color: var(--nw-done);
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.lane-count {
+  min-width: 20px;
+  padding: 0 6px;
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--nw-fg) 8%, transparent);
+  color: color-mix(in srgb, var(--nw-fg-muted) 70%, var(--nw-fg));
+  font-size: 11px;
+  line-height: 18px;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+/*
+ * Lane fold toggle (kanban.md 3.2): a double chevron at the end of the header, quiet like the
+ * lane collapse. Up folds the lane's card bodies, down unfolds them (data-next, the next action).
+ */
+button.lane-bodies {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: none;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--nw-fg-muted);
+}
+
+button.lane-bodies:hover {
+  background: var(--nw-toolbar-hover);
+  color: var(--nw-fg);
+}
+
+/* High contrast has no hover tint: a dashed outline marks the hovered header button. */
+body.vscode-high-contrast button.lane-collapse:hover,
+body.vscode-high-contrast button.lane-bodies:hover {
+  outline: 1px dashed var(--nw-outline);
+  outline-offset: -1px;
+}
+
+.lane-bodies-icon {
+  position: relative;
+  display: block;
+  width: 16px;
+  height: 16px;
+}
+
+.lane-bodies-icon::before,
+.lane-bodies-icon::after {
+  content: '';
+  position: absolute;
+  left: 4px;
+  width: 6px;
+  height: 6px;
+  border-top: 1.5px solid currentColor;
+  border-left: 1.5px solid currentColor;
+  transform: rotate(45deg);
+}
+
+.lane-bodies-icon::before { top: 3px; }
+.lane-bodies-icon::after { top: 8px; }
+
+button.lane-bodies[data-next='unfold'] .lane-bodies-icon {
+  transform: rotate(180deg);
+}
+
+/* Cards ------------------------------------------------------------------ */
+
+.cards {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-height: 4px;
+}
+
+.card {
+  position: relative;
+  display: grid;
+  grid-template-columns: 16px 1fr auto;
+  column-gap: 8px;
+  padding: 8px 12px 8px 8px;
+  border: 1px solid var(--nw-border);
+  border-radius: var(--nw-radius-card);
+  background: var(--nw-card-bg);
+  cursor: grab;
+  transition: border-color 120ms ease-out, background-color 120ms ease-out;
+}
+
+.card:hover {
+  border-color: var(--nw-hover-border);
+  background: var(--nw-hover-bg);
+}
+
+/* Obsidian hover colors are translucent overlays: layer them over the card. */
+body[data-style='obsidian'] .card:hover {
+  background: linear-gradient(var(--nw-hover-bg), var(--nw-hover-bg)), var(--nw-card-bg);
+}
+
+/* High contrast: hover is dashed so it differs from the solid focus ring. */
+body.vscode-high-contrast .card:hover {
+  border-style: dashed;
+}
+
+/*
+ * Selected card: the same ring whether it was clicked or reached with the keyboard, while
+ * focus is inside it (its checkbox or a link), and for the card just added while the add
+ * input keeps the focus (kanban.md 4.4.1). The open editor has its own ring.
+ */
+.card:focus,
+.card.selected,
+.card:not(.editing):focus-within {
+  outline: 1px solid var(--nw-focus);
+  outline-offset: 1px;
+}
+
+.card.dragging {
+  opacity: 0.4;
+}
+
+.card-check {
+  width: 14px;
+  height: 14px;
+  margin: 3px 0 0;
+  accent-color: var(--nw-accent);
+  cursor: pointer;
+}
+
+body.vscode-high-contrast .card-check {
+  accent-color: var(--nw-outline);
+}
+
+.card-title {
+  min-width: 0;
+  font-size: var(--nw-font-size);
+  line-height: 20px;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.card.checked .card-title {
+  color: var(--nw-fg-muted);
+  text-decoration: line-through;
+  text-decoration-color: color-mix(in srgb, var(--nw-fg-muted) 60%, transparent);
+}
+
+.card-body {
+  grid-column: 2;
+  margin-top: 4px;
+  color: var(--nw-fg-muted);
+  font-size: 12px;
+  line-height: 18px;
+}
+
+/*
+ * On a hovered card the muted text leans toward the foreground: the hover surface is
+ * lighter (or darker) than the card, and plain muted text fell below 4.5:1 there
+ * (VS Code Light Modern 4.36; 5.11 with this mix).
+ */
+.card:hover .card-body,
+.card.checked:hover .card-title {
+  color: color-mix(in srgb, var(--nw-fg-muted) 80%, var(--nw-fg));
+}
+
+/* Hanging indent: a wrapped line continues after the leading "- " marker. */
+.body-line {
+  padding-left: 1em;
+  text-indent: -1em;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+/* Inline-block pills would inherit the hanging indent and slide over the text before them. */
+.body-line .badge {
+  text-indent: 0;
+}
+
+.body-line.depth-1 { padding-left: calc(12px + 1em); }
+.body-line.depth-2 { padding-left: calc(24px + 1em); }
+.body-line.depth-3 { padding-left: calc(36px + 1em); }
+
+/* Code lines sit on the code background; muted text leans toward the foreground there (>= 4.5:1). */
+.body-line.code {
+  color: color-mix(in srgb, var(--nw-fg-muted) 80%, var(--nw-fg));
+  text-indent: 0;
+  padding-left: 8px;
+  padding-right: 8px;
+  background: var(--nw-code-bg);
+  font-family: var(--nw-font-mono);
+  font-size: 11px;
+}
+
+/* Card body as Markdown (kanban.md 3) ------------------------------------ */
+
+/*
+ * The body's blocks in the card's small body type: headings no larger than the body text
+ * (below the 13px title), compact margins, and tables that scroll sideways inside the card.
+ * The grid column may shrink below the table's width (min-width: 0) so the wrapper scrolls.
+ */
+.card-body-md {
+  min-width: 0;
+}
+
+.card-body-md .md {
+  overflow-wrap: anywhere;
+}
+
+.card-body-md .md > :first-child {
+  margin-top: 0;
+}
+
+.card-body-md .md > :last-child {
+  margin-bottom: 0;
+}
+
+.card-body-md .md-paragraph {
+  margin: 0 0 4px;
+}
+
+.card-body-md .md-heading {
+  margin: 6px 0 2px;
+  color: color-mix(in srgb, var(--nw-fg-muted) 60%, var(--nw-fg));
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 18px;
+}
+
+.card-body-md .md-list {
+  margin: 0 0 4px;
+  padding-left: 16px;
+}
+
+.card-body-md .md-item > .md-list {
+  margin-bottom: 0;
+}
+
+.card-body-md .md-item > .md-paragraph,
+.card-body-md .md-item > .md-code,
+.card-body-md .md-item > .md-table-wrap {
+  margin: 2px 0;
+}
+
+.card-body-md .md-task {
+  list-style: none;
+}
+
+/* Shown, not pressed (kanban.md 3): the box sits in the bullet's place. */
+.card-body-md .md-item .md-checkbox {
+  width: 12px;
+  height: 12px;
+  margin: 0 4px 0 -16px;
+  vertical-align: -2px;
+  accent-color: var(--nw-accent);
+}
+
+body.vscode-high-contrast .card-body-md .md-checkbox {
+  accent-color: var(--nw-outline);
+}
+
+.card-body-md .md-task-checked > .md-item-text {
+  text-decoration: line-through;
+}
+
+.card-body-md .md-quote {
+  margin: 0 0 4px;
+  padding: 0 0 0 8px;
+  border-left: 2px solid var(--nw-border);
+}
+
+.card-body-md .md-rule {
+  margin: 6px 0;
+  border: none;
+  border-top: 1px solid var(--nw-border);
+}
+
+/* Code sits on the code background; muted text leans toward the foreground there (>= 4.5:1). */
+.card-body-md .md-code {
+  margin: 0 0 4px;
+  border: 1px solid var(--nw-outline);
+  border-radius: 4px;
+  background: var(--nw-code-bg);
+  color: color-mix(in srgb, var(--nw-fg-muted) 80%, var(--nw-fg));
+}
+
+.card-body-md .md-code-lang {
+  display: block;
+  padding: 0 8px;
+  border-bottom: 1px solid var(--nw-border);
+  font-size: 11px;
+  line-height: 16px;
+}
+
+.card-body-md pre.md-code-block {
+  margin: 0;
+  padding: 2px 8px;
+  font-family: var(--nw-font-mono);
+  font-size: 11px;
+  line-height: 16px;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.card-body-md .md-table-wrap {
+  margin: 0 0 4px;
+  overflow-x: auto;
+  scrollbar-color: var(--nw-scrollbar) transparent;
+}
+
+/*
+ * Words keep together (Korean words too, keep-all) and headers stay on one line, so a wide
+ * table scrolls inside the card instead of squeezing its columns to a syllable each.
+ */
+.card-body-md .md-table {
+  border-collapse: collapse;
+  font-size: 11px;
+  line-height: 16px;
+  overflow-wrap: normal;
+  word-break: keep-all;
+}
+
+.card-body-md .md-table th {
+  white-space: nowrap;
+}
+
+.card-body-md .md-table th,
+.card-body-md .md-table td {
+  padding: 1px 6px;
+  border: 1px solid var(--nw-border);
+  text-align: left;
+  vertical-align: top;
+}
+
+.card-body-md .md-table th {
+  background: color-mix(in srgb, var(--nw-fg) 7%, transparent);
+  color: color-mix(in srgb, var(--nw-fg-muted) 60%, var(--nw-fg));
+  font-weight: 600;
+}
+
+.card-body-md .md-table .md-align-center {
+  text-align: center;
+}
+
+.card-body-md .md-table .md-align-right {
+  text-align: right;
+}
+
+/* A cell beyond the header's width (a date appended to a row): kept, with a dashed edge. */
+.card-body-md .md-table-extra,
+.card-preview .md-table-extra {
+  margin: 2px 0 0;
+}
+
+.card-body-md .md-code-span {
+  padding: 0 4px;
+  border: 1px solid var(--nw-outline);
+  border-radius: 4px;
+  background: var(--nw-code-bg);
+  font-family: var(--nw-font-mono);
+  font-size: 11px;
+}
+
+/* Plain links are text only, as on the board. */
+.card-body-md .md-link-inert {
+  text-decoration: underline dotted;
+  text-underline-offset: 2px;
+}
+
+.card-body-md .md-image {
+  font-style: italic;
+}
+
+.card-body-md .md-image::before {
+  content: '[';
+}
+
+.card-body-md .md-image::after {
+  content: ']';
+}
+
+/* Card body fold (kanban.md 3.2) ----------------------------------------- */
+
+/*
+ * The toggle sits in the checkbox column next to the first body line: the lane collapse's
+ * thin chevron, right when folded and down when expanded. 20px, centered on the 16px column.
+ */
+button.body-toggle {
+  grid-column: 1;
+  grid-row: 2;
+  align-self: start;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  /* 24px target (WCAG 2.5.8); the negative margins keep it centered on the column and line. */
+  width: 24px;
+  height: 24px;
+  margin: 1px 0 -4px -4px;
+  padding: 0;
+  border: none;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--nw-fg-muted);
+  cursor: pointer;
+}
+
+button.body-toggle:hover {
+  background: var(--nw-toolbar-hover);
+  color: var(--nw-fg);
+}
+
+.body-toggle-icon {
+  display: block;
+  width: 16px;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 16px;
+  text-align: center;
+  transition: transform 120ms ease-out;
+}
+
+button.body-toggle[aria-expanded='true'] .body-toggle-icon {
+  transform: rotate(90deg);
+}
+
+/* main.ts: the redrawn toggle starts at the previous angle so the turn shows. */
+button.body-toggle.turn-from .body-toggle-icon {
+  transition: none;
+}
+
+button.body-toggle.turn-from[aria-expanded='true'] .body-toggle-icon {
+  transform: none;
+}
+
+button.body-toggle.turn-from[aria-expanded='false'] .body-toggle-icon {
+  transform: rotate(90deg);
+}
+
+/* A folded body is one line: a quiet pill with the line count, like the lane count. */
+.card-body.folded {
+  cursor: pointer;
+}
+
+.body-folded-label {
+  display: inline-block;
+  padding: 0 6px;
+  border: 1px solid var(--nw-outline);
+  border-radius: 9px;
+  background: color-mix(in srgb, var(--nw-fg) 8%, transparent);
+  color: color-mix(in srgb, var(--nw-fg-muted) 70%, var(--nw-fg));
+  font-size: 11px;
+  line-height: 16px;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.card-body.folded:hover .body-folded-label {
+  color: var(--nw-fg);
+}
+
+/* Card preview (kanban.md 3.3) ------------------------------------------- */
+
+/*
+ * The whole card as Markdown beside the card (main.ts places it inside the window). Up to
+ * 480px wide and 60% of the window high; longer content scrolls inside the popup.
+ */
+.card-preview {
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: 15;
+  box-sizing: border-box;
+  width: max-content;
+  min-width: 200px;
+  max-width: min(480px, calc(100vw - 16px));
+  max-height: 60vh;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 10px 12px;
+  border: 1px solid var(--nw-popup-border);
+  border-radius: var(--nw-radius-card);
+  background: var(--nw-popup-bg);
+  color: var(--nw-fg);
+  /* The ring keeps the popup apart from lanes and cards of the same color beneath it. */
+  outline: 1px solid color-mix(in srgb, var(--nw-fg) 12%, transparent);
+  box-shadow: 0 4px 16px var(--nw-shadow);
+  font-family: var(--nw-font);
+  font-size: var(--nw-font-size);
+  line-height: 20px;
+  scrollbar-color: var(--nw-scrollbar) transparent;
+}
+
+.card-preview-title {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding-bottom: 8px;
+  margin-bottom: 8px;
+  border-bottom: 1px solid var(--nw-border);
+  font-size: 14px;
+  font-weight: 600;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.card-preview-title .md-checkbox {
+  flex: none;
+  width: 14px;
+  height: 14px;
+  margin: 3px 0 0;
+  accent-color: var(--nw-accent);
+}
+
+body.vscode-high-contrast .card-preview-title .md-checkbox,
+body.vscode-high-contrast .card-preview .md-checkbox {
+  accent-color: var(--nw-outline);
+}
+
+.card-preview-title-text {
+  min-width: 0;
+}
+
+.card-preview-title.checked .card-preview-title-text {
+  color: var(--nw-fg-muted);
+  text-decoration: line-through;
+}
+
+.card-preview .md {
+  overflow-wrap: anywhere;
+}
+
+.card-preview .md > :first-child {
+  margin-top: 0;
+}
+
+.card-preview .md > :last-child {
+  margin-bottom: 0;
+}
+
+.card-preview .md-paragraph {
+  margin: 0 0 8px;
+}
+
+.card-preview .md-heading {
+  margin: 12px 0 4px;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.card-preview .md-h1,
+.card-preview .md-h2,
+.card-preview .md-h3 {
+  font-size: 13px;
+}
+
+.card-preview .md-h4,
+.card-preview .md-h5,
+.card-preview .md-h6 {
+  color: color-mix(in srgb, var(--nw-fg-muted) 70%, var(--nw-fg));
+  font-size: 13px;
+}
+
+.card-preview .md-list {
+  margin: 0 0 8px;
+  padding-left: 22px;
+}
+
+.card-preview .md-item > .md-list {
+  margin-bottom: 0;
+}
+
+.card-preview .md-item > .md-paragraph,
+.card-preview .md-item > .md-code {
+  margin: 4px 0;
+}
+
+.card-preview .md-task {
+  list-style: none;
+}
+
+.card-preview .md-item .md-checkbox {
+  margin: 0 6px 0 -20px;
+  vertical-align: -2px;
+  accent-color: var(--nw-accent);
+}
+
+.card-preview .md-task-checked > .md-item-text {
+  color: color-mix(in srgb, var(--nw-fg-muted) 70%, var(--nw-fg));
+  text-decoration: line-through;
+}
+
+.card-preview .md-quote {
+  margin: 0 0 8px;
+  padding: 0 0 0 12px;
+  border-left: 3px solid var(--nw-border);
+  color: color-mix(in srgb, var(--nw-fg-muted) 70%, var(--nw-fg));
+}
+
+.card-preview .md-rule {
+  margin: 12px 0;
+  border: none;
+  border-top: 1px solid var(--nw-border);
+}
+
+.card-preview .md-code {
+  margin: 0 0 8px;
+  border: 1px solid var(--nw-outline);
+  border-radius: 4px;
+  background: var(--nw-code-bg);
+}
+
+/* A caption above the code, not a code line: quieter, with a divider (>= 4.5:1 on the code tint). */
+.card-preview .md-code-lang {
+  display: block;
+  padding: 2px 10px;
+  border-bottom: 1px solid var(--nw-border);
+  color: color-mix(in srgb, var(--nw-fg-muted) 80%, var(--nw-fg));
+  font-size: 11px;
+  line-height: 14px;
+}
+
+.card-preview pre.md-code-block {
+  margin: 0;
+  padding: 6px 10px;
+  font-family: var(--nw-font-mono);
+  font-size: 12px;
+  line-height: 18px;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.card-preview .md-table-wrap {
+  margin: 0 0 8px;
+  overflow-x: auto;
+}
+
+.card-preview .md-table {
+  border-collapse: collapse;
+  font-size: 12px;
+  line-height: 18px;
+}
+
+.card-preview .md-table th,
+.card-preview .md-table td {
+  padding: 4px 8px;
+  border: 1px solid var(--nw-border);
+  text-align: left;
+  vertical-align: top;
+  overflow-wrap: break-word;
+}
+
+.card-preview .md-table th {
+  background: color-mix(in srgb, var(--nw-fg) 7%, transparent);
+  font-weight: 600;
+}
+
+.card-preview .md-table .md-align-center {
+  text-align: center;
+}
+
+.card-preview .md-table .md-align-right {
+  text-align: right;
+}
+
+.card-preview .md-code-span,
+.card-preview-title code {
+  padding: 0 4px;
+  border: 1px solid var(--nw-outline);
+  border-radius: 4px;
+  background: var(--nw-code-bg);
+  font-family: var(--nw-font-mono);
+  font-size: 12px;
+}
+
+/* Plain links are text only, as on the board. */
+.card-preview .md-link-inert {
+  text-decoration: underline dotted;
+  text-underline-offset: 2px;
+}
+
+.card-preview .md-image {
+  color: color-mix(in srgb, var(--nw-fg-muted) 70%, var(--nw-fg));
+  font-style: italic;
+}
+
+.card-preview .md-image::before {
+  content: '[';
+}
+
+.card-preview .md-image::after {
+  content: ']';
+}
+
+/* Pills inside a highlight sit on the popup color, as they sit on the card color on the board. */
+.card-preview :is(.highlight, .md-highlight) .badge {
+  background-color: var(--nw-popup-bg);
+}
+
+/* Card menu (kanban.md 4.6) --------------------------------------------- */
+
+/* The ⋯ button stays out of the way until the card is hovered, selected or focused. */
+button.card-menu-button {
+  grid-column: 3;
+  grid-row: 1;
+  align-self: start;
+  /* 24px target; the negative margins keep the drawn spot of the old 20px button. */
+  width: 24px;
+  height: 24px;
+  margin: -2px -6px -2px 2px;
+  padding: 0;
+  border: none;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--nw-fg-muted);
+  font-size: 13px;
+  line-height: 24px;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.card:hover button.card-menu-button,
+.card:focus-within button.card-menu-button,
+.card.selected button.card-menu-button,
+.card.menu-open button.card-menu-button {
+  opacity: 1;
+}
+
+button.card-menu-button:hover {
+  background: var(--nw-toolbar-hover);
+  color: var(--nw-fg);
+}
+
+.card-body {
+  grid-row: 2;
+}
+
+.card-menu {
+  position: fixed;
+  z-index: 20;
+  min-width: 184px;
+  max-width: 280px;
+  padding: 4px;
+  border: 1px solid var(--nw-menu-border);
+  border-radius: var(--nw-radius-card);
+  background: var(--nw-menu-bg);
+  color: var(--nw-menu-fg);
+  box-shadow: 0 4px 16px var(--nw-shadow);
+  font-size: 13px;
+  line-height: 20px;
+}
+
+.card-menu:focus {
+  outline: none;
+}
+
+.card-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 8px;
+  border-radius: 4px;
+  border: 1px solid transparent;
+  cursor: pointer;
+  user-select: none;
+}
+
+.card-menu-label {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.card-menu-item:focus {
+  outline: none;
+}
+
+/* Error hue mixed toward the menu text: 4.5:1 on the menu in every style. */
+.card-menu-item.danger {
+  color: color-mix(in srgb, var(--nw-error) 80%, var(--nw-menu-fg));
+}
+
+body[data-style='obsidian'] .card-menu-item.danger {
+  color: color-mix(in srgb, var(--nw-error) 55%, var(--nw-menu-fg));
+}
+
+.card-menu-item[aria-disabled='true'] {
+  color: var(--nw-fg-faint);
+  cursor: default;
+}
+
+/* Keyboard hint and lane-list check, right-aligned and quieter than the label. */
+.card-menu-keybinding,
+.card-menu-chevron,
+.card-menu-done {
+  flex: none;
+  color: var(--nw-fg-muted);
+}
+
+.card-menu-keybinding {
+  font-size: 12px;
+}
+
+.card-menu-chevron {
+  font-size: 13px;
+  line-height: 1;
+}
+
+.card-menu-done {
+  color: color-mix(in srgb, var(--nw-done) 60%, var(--nw-menu-fg));
+  font-weight: 700;
+  font-size: 11px;
+}
+
+/*
+ * The active item (arrow keys or the mouse) is filled like a native menu selection;
+ * everything on it, the delete text included, takes the selection text color.
+ */
+.card-menu-item.active,
+.card-menu-item.active.danger,
+.card-menu-item.active .card-menu-keybinding,
+.card-menu-item.active .card-menu-chevron,
+.card-menu-item.active .card-menu-done {
+  color: var(--nw-menu-active-fg);
+}
+
+.card-menu-item.active {
+  background: var(--nw-menu-active-bg);
+  border-color: var(--nw-menu-active-border);
+}
+
+/*
+ * Obsidian themes pair the accent with text-on-accent at under 4.5:1 (4.27 in the
+ * default theme, lower with a custom accent), so the obsidian style tints the row
+ * with the accent and outlines it instead, as VS Code's 2026 themes do; the text
+ * stays the menu text color.
+ */
+body[data-style='obsidian'] .card-menu-item.active {
+  background: color-mix(in srgb, var(--nw-menu-active-bg) 20%, var(--nw-menu-bg));
+  border-color: var(--nw-menu-active-bg);
+}
+
+body[data-style='obsidian'] .card-menu-item.active,
+body[data-style='obsidian'] .card-menu-item.active .card-menu-keybinding,
+body[data-style='obsidian'] .card-menu-item.active .card-menu-chevron,
+body[data-style='obsidian'] .card-menu-item.active .card-menu-done {
+  color: var(--nw-menu-fg);
+}
+
+/* Delete keeps its hue on the tint: 45% stays >= 4.5:1 with a custom accent (4.80). */
+body[data-style='obsidian'] .card-menu-item.active.danger {
+  color: color-mix(in srgb, var(--nw-error) 45%, var(--nw-menu-fg));
+}
+
+/*
+ * Some VS Code themes make the menu selection close to the menu background with no
+ * selection border; a keyboard-driven active row also gets the focus ring.
+ */
+body[data-style='vscode'] .card-menu-item.active:focus-visible {
+  outline: 1px solid var(--nw-focus);
+  outline-offset: -1px;
+}
+
+.card-menu-separator {
+  height: 1px;
+  margin: 4px 0;
+  background: var(--nw-menu-separator);
+}
+
+/* Date picker (kanban.md 4.8) -------------------------------------------- */
+
+/* A small dialog under the date badge or the card's first line, drawn like the card menu. */
+.date-picker {
+  position: fixed;
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 8px;
+  border: 1px solid var(--nw-menu-border);
+  border-radius: var(--nw-radius-card);
+  background: var(--nw-menu-bg);
+  color: var(--nw-menu-fg);
+  box-shadow: 0 4px 16px var(--nw-shadow);
+  font-size: 13px;
+  line-height: 20px;
+}
+
+/* The browser's date field and calendar follow the theme brightness in the VS Code style. */
+body.vscode-dark:not([data-scheme]) .date-picker,
+body.vscode-high-contrast:not(.vscode-high-contrast-light):not([data-scheme]) .date-picker {
+  color-scheme: dark;
+}
+
+body.vscode-light:not([data-scheme]) .date-picker,
+body.vscode-high-contrast-light:not([data-scheme]) .date-picker {
+  color-scheme: light;
+}
+
+.date-picker-input {
+  min-width: 168px;
+  padding: 4px 8px;
+  border: 1px solid var(--nw-input-border);
+  border-radius: 4px;
+  background: var(--nw-input-bg);
+  color: var(--nw-input-fg);
+  font: inherit;
+  font-variant-numeric: tabular-nums;
+  line-height: 20px;
+}
+
+.date-picker-input:focus {
+  outline: 1px solid var(--nw-focus);
+  outline-offset: -1px;
+}
+
+.date-picker-input[aria-invalid='true'] {
+  border-color: var(--nw-error);
+}
+
+.date-picker-buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.date-picker-buttons button {
+  min-width: 64px;
+  padding: 2px 12px;
+  border: 1px solid var(--nw-outline);
+  border-radius: 4px;
+  font: inherit;
+  line-height: 20px;
+}
+
+.date-picker-buttons button:focus-visible {
+  outline: 1px solid var(--nw-focus);
+  outline-offset: 2px;
+}
+
+.date-picker-ok {
+  background: var(--nw-accent);
+  color: var(--nw-on-accent);
+}
+
+.date-picker-ok:hover {
+  background: color-mix(in srgb, var(--nw-accent) 88%, var(--nw-fg));
+}
+
+.date-picker-cancel {
+  border-color: var(--nw-input-border);
+  background: transparent;
+  color: var(--nw-menu-fg);
+}
+
+.date-picker-cancel:hover {
+  background: var(--nw-toolbar-hover);
+}
+
+/* The card whose date is being picked keeps the selection ring while the field has the focus. */
+.card.date-open {
+  outline: 1px solid var(--nw-focus);
+  outline-offset: 1px;
+}
+
+/* The card's first date badge opens the picker. */
+.badge.date-pick {
+  cursor: pointer;
+}
+
+.badge.date-pick:hover {
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.badge.date-pick:focus-visible {
+  outline: 1px solid var(--nw-focus);
+  outline-offset: 1px;
+}
+
+/* Inline tokens ---------------------------------------------------------- */
+
+.badge {
+  display: inline-block;
+  padding: 0 6px;
+  border-radius: 9px;
+  border: 1px solid var(--nw-outline);
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 16px;
+  vertical-align: 1px;
+  white-space: nowrap;
+}
+
+.badge.category {
+  margin-right: 2px;
+  background: color-mix(in srgb, var(--nw-fg) 10%, transparent);
+  color: var(--nw-fg);
+}
+
+.badge.tag {
+  background: var(--nw-tag-bg);
+  color: var(--nw-tag-fg);
+}
+
+/* Date pills: hue tint behind, text mixed toward the foreground for >= 4.5:1. */
+.badge.date,
+.badge.time {
+  background: color-mix(in srgb, var(--nw-date) 16%, transparent);
+  color: color-mix(in srgb, var(--nw-date) 50%, var(--nw-fg));
+  font-variant-numeric: tabular-nums;
+}
+
+.badge.date-today {
+  background: color-mix(in srgb, var(--nw-date-today) 18%, transparent);
+  color: color-mix(in srgb, var(--nw-date-today) 40%, var(--nw-fg));
+}
+
+.badge.date-past {
+  background: color-mix(in srgb, var(--nw-date-past) 16%, transparent);
+  color: color-mix(in srgb, var(--nw-date-past) 50%, var(--nw-fg));
+}
+
+/*
+ * Obsidian style: theme hues can be more saturated than VS Code chart colors, so date
+ * text leans further toward the foreground to stay >= 4.5:1 on card and hover with the
+ * default and sample themes (plain 50% fell to 4.19 on hover). Other styles keep the ratios above.
+ */
+body[data-style='obsidian'] .badge.date,
+body[data-style='obsidian'] .badge.time {
+  color: color-mix(in srgb, var(--nw-date) 40%, var(--nw-fg));
+}
+
+body[data-style='obsidian'] .badge.date-today {
+  color: color-mix(in srgb, var(--nw-date-today) 40%, var(--nw-fg));
+}
+
+body[data-style='obsidian'] .badge.date-past {
+  color: color-mix(in srgb, var(--nw-date-past) 45%, var(--nw-fg));
+}
+
+/* Theme greens can be light; the done mark leans toward the text color to stay >= 3:1. */
+body[data-style='obsidian'] .lane-done {
+  color: color-mix(in srgb, var(--nw-done) 60%, var(--nw-fg));
+}
+
+.wikilink {
+  color: var(--nw-link);
+  border-radius: 2px;
+  cursor: pointer;
+}
+
+.wikilink:hover {
+  color: var(--nw-link-active);
+  text-decoration: underline;
+}
+
+.wikilink:focus-visible {
+  outline: 1px solid var(--nw-focus);
+  outline-offset: 1px;
+}
+
+/*
+ * ==highlight== (Obsidian's highlighter); .md-highlight is the same in Markdown card bodies
+ * and the preview. Text keeps the foreground color on the highlight tint. Pills inside are drawn over an opaque card-colored base so their
+ * contrast stays as on a plain card; links keep the text color with an underline.
+ */
+mark.highlight,
+mark.md-highlight {
+  padding: 0 2px;
+  border-radius: 3px;
+  border: 1px solid var(--nw-outline);
+  background: var(--nw-highlight-bg);
+  color: inherit;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+}
+
+:is(.highlight, .md-highlight) .wikilink {
+  color: inherit;
+  text-decoration: underline;
+  text-decoration-color: var(--nw-link);
+}
+
+:is(.highlight, .md-highlight) .badge {
+  background-color: var(--nw-card-bg);
+}
+
+:is(.highlight, .md-highlight) .badge.category {
+  background-image: linear-gradient(color-mix(in srgb, var(--nw-fg) 10%, transparent), color-mix(in srgb, var(--nw-fg) 10%, transparent));
+}
+
+:is(.highlight, .md-highlight) .badge.tag {
+  background-image: linear-gradient(var(--nw-tag-bg), var(--nw-tag-bg));
+}
+
+:is(.highlight, .md-highlight) .badge.date,
+:is(.highlight, .md-highlight) .badge.time {
+  background-image: linear-gradient(color-mix(in srgb, var(--nw-date) 16%, transparent), color-mix(in srgb, var(--nw-date) 16%, transparent));
+}
+
+:is(.highlight, .md-highlight) .badge.date-today {
+  background-image: linear-gradient(color-mix(in srgb, var(--nw-date-today) 18%, transparent), color-mix(in srgb, var(--nw-date-today) 18%, transparent));
+}
+
+:is(.highlight, .md-highlight) .badge.date-past {
+  background-image: linear-gradient(color-mix(in srgb, var(--nw-date-past) 16%, transparent), color-mix(in srgb, var(--nw-date-past) 16%, transparent));
+}
+
+.md-link {
+  text-decoration: underline dotted;
+  text-underline-offset: 2px;
+}
+
+.card-title code,
+.body-line code {
+  padding: 0 4px;
+  border: 1px solid var(--nw-outline);
+  border-radius: 4px;
+  background: var(--nw-code-bg);
+  font-family: var(--nw-font-mono);
+  font-size: 12px;
+}
+
+/* Add card and inline editors -------------------------------------------- */
+
+button.add-card {
+  width: 100%;
+  padding: 4px 8px;
+  border: 1px solid transparent;
+  border-radius: var(--nw-radius-card);
+  background: transparent;
+  color: var(--nw-fg-muted);
+  font-size: 12px;
+  line-height: 20px;
+  text-align: left;
+  transition: background-color 120ms ease-out, color 120ms ease-out;
+}
+
+button.add-card:hover {
+  background: var(--nw-toolbar-hover);
+  color: var(--nw-fg);
+}
+
+button.add-card:focus-visible {
+  outline: 1px solid var(--nw-focus);
+  outline-offset: 0;
+}
+
+/* Shared by the one-line input and the multi-line card editor. */
+.inline-edit {
+  width: 100%;
+  padding: 4px 8px;
+  border: 1px solid var(--nw-input-border);
+  border-radius: 4px;
+  background: var(--nw-input-bg);
+  color: var(--nw-input-fg);
+  font: inherit;
+  line-height: 20px;
+}
+
+.inline-edit:focus {
+  outline: 1px solid var(--nw-focus);
+  outline-offset: -1px;
+}
+
+/* Multi-line card editor: replaces the card content while editing. */
+.card.editing {
+  display: block;
+  padding: 4px;
+  cursor: auto;
+}
+
+.card-editor {
+  display: block;
+  min-height: 32px;
+  max-height: 60vh;
+  resize: none;
+  overflow-y: auto;
+}
+
+.orphan-draft p {
+  margin: 0 0 8px;
+}
+
+.inline-edit[readonly] {
+  opacity: 0.6;
+}
+
+/* Drag and drop ---------------------------------------------------------- */
+
+.card.drop-before::before,
+.card.drop-after::after {
+  content: '';
+  position: absolute;
+  left: 4px;
+  right: 4px;
+  height: 2px;
+  border-radius: 1px;
+  background: var(--nw-focus);
+}
+
+.card.drop-before::before { top: -6px; }
+.card.drop-after::after { bottom: -6px; }
+
+.lane.drop-before::before,
+.lane.drop-after::after {
+  content: '';
+  position: absolute;
+  top: 4px;
+  bottom: 4px;
+  width: 2px;
+  border-radius: 1px;
+  background: var(--nw-focus);
+}
+
+.lane.drop-before::before { left: -7px; }
+.lane.drop-after::after { right: -7px; }
+
+.lane.drop-into {
+  border-color: var(--nw-focus);
+  border-style: dashed;
+}
+
+.lane.dragging {
+  opacity: 0.5;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card,
+  button.add-card,
+  .board-help-text,
+  .body-toggle-icon,
+  .lane-collapse-icon {
+    transition: none;
+  }
+}

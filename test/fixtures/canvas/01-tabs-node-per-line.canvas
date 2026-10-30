@@ -1,0 +1,10 @@
+{
+	"nodes":[
+		{"id":"a1","type":"text","text":"# Plan\n\n- first\n- second","x":-200,"y":-120,"width":250,"height":140},
+		{"id":"b2","type":"file","file":"Notes/Weekly.md","x":100,"y":-120,"width":400,"height":300,"color":"4"},
+		{"id":"c3","type":"group","x":-260,"y":-180,"width":800,"height":500,"label":"Week"}
+	],
+	"edges":[
+		{"id":"e1","fromNode":"a1","fromSide":"right","toNode":"b2","toSide":"left"}
+	]
+}

@@ -1,0 +1,17 @@
+/* Synthetic hostile snippet: dangerous values are dropped; safe declarations that the
+   attack leaves behind (e.g. "--text-accent: red" before the early "}") may still apply
+   by normal CSS rules. */
+.theme-dark {
+  --text-error: url("https://example.invalid/track.png");
+  --text-warning: expression(alert(1));
+  --text-accent: red; } body { background: url(x) ;
+  --interactive-accent: #fff\3b background:red;
+  --code-background: "</style><script>alert(1)</script>";
+  --cycle-a: var(--cycle-b);
+  --cycle-b: var(--cycle-a);
+  --background-modifier-hover: var(--cycle-a);
+  --unknown-ref: var(--does-not-exist);
+  --with-fallback: var(--does-not-exist, #123456);
+  --scrollbar-thumb-bg: image(#000);
+  --long: AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA;
+}

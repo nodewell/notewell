@@ -1,0 +1,13 @@
+**
+!dist/extension.cjs
+!dist/webview/*.js
+!dist/webview/*.css
+!package.json
+!package.nls.json
+!package.nls.*.json
+!l10n/**
+!README.md
+!README.ko.md
+!CHANGELOG.md
+!LICENSE
+!images/icon.png

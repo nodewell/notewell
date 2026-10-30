@@ -1,0 +1,30 @@
+{
+  "id": "TASK-3",
+  "title": "Ship it",
+  "status": "Done",
+  "type": null,
+  "priority": null,
+  "assignees": [],
+  "labels": [],
+  "milestone": null,
+  "parentTaskId": null,
+  "references": [],
+  "modifiedFiles": [],
+  "documentation": [],
+  "dependencies": [],
+  "ordinal": 4000,
+  "dueDate": null,
+  "description": "Release notes.",
+  "acceptanceCriteria": [
+    {
+      "index": 1,
+      "text": "Tagged",
+      "checked": true
+    }
+  ],
+  "definitionOfDone": [],
+  "implementationPlan": null,
+  "implementationNotes": null,
+  "comments": [],
+  "finalSummary": "Shipped v1."
+}

@@ -1,0 +1,1030 @@
+/*
+ * Canvas view (canvas.md 4). Every color, radius and font comes from a --nw-* token
+ * (style-tokens.ts); the defaults below are VS Code theme variables only, so light, dark and
+ * high-contrast themes follow. Card and edge colors from the file arrive as --nw-node-color on
+ * the element (a preset token or a validated hex color, render.ts) and are used only for
+ * borders, lines and a light tint.
+ * Scale: spacing 4/8/12/16px; type 12px (meta), 13px (body).
+ */
+
+:root {
+  --nw-board-bg: var(--vscode-editor-background);
+  --nw-card-bg: var(--vscode-editorWidget-background, var(--vscode-editor-background));
+  /* At least 3:1 against the canvas in every theme: the foreground mixed into the background
+     (high contrast themes use their contrast border). */
+  --nw-border: var(--vscode-contrastBorder, color-mix(in srgb, var(--vscode-foreground) 58%, var(--vscode-editor-background)));
+  --nw-shadow: var(--vscode-widget-shadow, transparent);
+  --nw-popup-bg: var(--vscode-editorWidget-background);
+  --nw-popup-border: var(--vscode-editorWidget-border, var(--vscode-widget-border));
+  --nw-toolbar-hover: var(--vscode-toolbar-hoverBackground);
+  --nw-outline: var(--vscode-contrastBorder, transparent);
+  --nw-canvas-dot: var(--vscode-editorWhitespace-foreground, var(--vscode-widget-border));
+  --nw-unsupported-bg: var(--vscode-textCodeBlock-background, var(--vscode-editorWidget-background));
+  --nw-fg: var(--vscode-foreground);
+  --nw-fg-muted: var(--vscode-descriptionForeground);
+  /* Secondary text on (tinted) card fills: >= 4.5:1 where descriptionForeground is not. */
+  --nw-card-muted: color-mix(in srgb, var(--vscode-descriptionForeground) 60%, var(--vscode-foreground));
+  --nw-link: var(--vscode-textLink-foreground);
+  --nw-link-active: var(--vscode-textLink-activeForeground);
+  --nw-code-bg: var(--vscode-textCodeBlock-background);
+  --nw-edge: var(--vscode-descriptionForeground);
+  --nw-focus: var(--vscode-focusBorder);
+  --nw-error: var(--vscode-errorForeground);
+  --nw-info: var(--vscode-editorInfo-foreground);
+  --nw-warning: var(--vscode-editorWarning-foreground);
+  --nw-color-1: var(--vscode-charts-red);
+  --nw-color-2: var(--vscode-charts-orange);
+  --nw-color-3: var(--vscode-charts-yellow);
+  --nw-color-4: var(--vscode-charts-green);
+  --nw-color-5: var(--vscode-terminal-ansiCyan, var(--vscode-charts-blue));
+  --nw-color-6: var(--vscode-charts-purple);
+  --nw-radius-card: 8px;
+  --nw-font: var(--vscode-font-family);
+  --nw-font-mono: var(--vscode-editor-font-family);
+  --nw-font-size: 13px;
+}
+
+body {
+  background: var(--nw-board-bg);
+  color: var(--nw-fg);
+  font-family: var(--nw-font);
+  font-size: var(--nw-font-size);
+  line-height: 20px;
+  overflow: hidden;
+}
+
+#app {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+
+/* Toolbar and notices --------------------------------------------------------------------- */
+
+.toolbar {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 2px;
+  background: var(--nw-popup-bg);
+  border: 1px solid var(--nw-popup-border);
+  border-radius: 6px;
+  box-shadow: 0 2px 8px var(--nw-shadow);
+}
+
+.tool-group {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.tool-divider {
+  width: 1px;
+  height: 18px;
+  margin: 0 4px;
+  background: var(--nw-popup-border);
+}
+
+.toolbar .tool {
+  min-width: 28px;
+  height: 26px;
+  padding: 0 6px;
+  color: var(--nw-fg);
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  font-size: 13px;
+  line-height: 24px;
+}
+
+.toolbar .tool:hover:not([disabled]) {
+  background: var(--nw-toolbar-hover);
+  border-color: var(--nw-outline);
+}
+
+.toolbar .tool[disabled] {
+  color: var(--nw-fg-muted);
+  cursor: default;
+}
+
+.toolbar .tool[aria-pressed='true'],
+.toolbar .tool[aria-expanded='true'] {
+  background: var(--nw-toolbar-hover);
+  border-color: var(--nw-focus);
+}
+
+.toolbar .zoom-level {
+  min-width: 52px;
+  font-variant-numeric: tabular-nums;
+  font-size: 12px;
+}
+
+.help {
+  position: absolute;
+  top: 48px;
+  right: 8px;
+  z-index: 2;
+  width: 440px;
+  max-width: calc(100% - 16px);
+  margin: 0;
+  padding: 8px 12px;
+  background: var(--nw-popup-bg);
+  border: 1px solid var(--nw-popup-border);
+  border-radius: 6px;
+  box-shadow: 0 2px 8px var(--nw-shadow);
+  font-size: 12px;
+  line-height: 18px;
+}
+
+.help-keys {
+  display: grid;
+  grid-template-columns: minmax(96px, 45%) 1fr;
+  gap: 6px 12px;
+  margin: 0;
+}
+
+.help-keys dt {
+  min-width: 0;
+}
+
+.help-keys dd {
+  margin: 0;
+}
+
+kbd {
+  display: inline-block;
+  padding: 0 4px;
+  border: 1px solid var(--nw-border);
+  border-radius: 3px;
+  background: var(--nw-code-bg);
+  font-family: var(--nw-font-mono);
+  font-size: 11px;
+  line-height: 16px;
+  white-space: normal;
+}
+
+.notices:empty {
+  display: none;
+}
+
+.notices {
+  padding: 8px 16px 0;
+}
+
+.notice {
+  margin: 0 0 8px;
+  padding: 4px 8px;
+  border-left: 3px solid var(--nw-info);
+  background: color-mix(in srgb, var(--nw-info) 8%, transparent);
+  color: var(--nw-fg);
+  font-size: 12px;
+  line-height: 18px;
+}
+
+.notice-warning {
+  border-left-color: var(--nw-warning);
+  background: color-mix(in srgb, var(--nw-warning) 12%, transparent);
+}
+
+/* An edit that was not applied (canvas.md 3.3). */
+.notice-error {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  border-left-color: var(--nw-error);
+  background: color-mix(in srgb, var(--nw-error) 10%, transparent);
+}
+
+.notice-text {
+  flex: 1;
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}
+
+.notice-dismiss {
+  min-width: 24px;
+  min-height: 24px;
+  padding: 0 6px;
+  color: var(--nw-fg);
+  background: transparent;
+  border: 1px solid transparent;
+  line-height: 18px;
+}
+
+.notice-dismiss:hover {
+  background: var(--nw-toolbar-hover);
+  border-color: var(--nw-outline);
+}
+
+.refused:empty {
+  display: none;
+}
+
+/* A toast over the canvas: showing it never shifts the canvas mid-interaction. */
+.refused {
+  position: absolute;
+  bottom: 16px;
+  left: 50%;
+  z-index: 3;
+  width: min(560px, calc(100% - 32px));
+  padding: 0;
+  transform: translateX(-50%);
+}
+
+.refused .notice {
+  margin: 0;
+  background: var(--nw-popup-bg);
+  border: 1px solid var(--nw-popup-border);
+  border-left: 3px solid var(--nw-error);
+  box-shadow: 0 2px 8px var(--nw-shadow);
+}
+
+/* Viewport -------------------------------------------------------------------------------- */
+
+.canvas-main {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+}
+
+.viewport {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  cursor: grab;
+  touch-action: none;
+  background-image: radial-gradient(circle, var(--nw-canvas-dot) 1px, transparent 1.5px);
+}
+
+.viewport.no-grid {
+  background-image: none;
+}
+
+.viewport:focus-visible {
+  outline: 1px solid var(--nw-focus);
+  outline-offset: -1px;
+}
+
+.viewport.panning,
+.viewport.space-pan,
+.viewport.space-pan .node {
+  cursor: grabbing;
+}
+
+.world {
+  position: absolute;
+  left: 0;
+  top: 0;
+  transform-origin: 0 0;
+}
+
+/* Each layer stacks on its own (groups < edges < cards < labels), so raising a card stays inside
+   its layer. */
+.layer {
+  position: absolute;
+  left: 0;
+  top: 0;
+  z-index: 0;
+}
+
+.layer-cards {
+  z-index: 2;
+}
+
+.layer-labels {
+  z-index: 3;
+}
+
+/* The selected card (also while dragged or resized) is drawn above the other cards of its layer,
+   in the view only: the file's node order never changes (canvas.md 4, 9.6). */
+.node.raised {
+  z-index: 1;
+}
+
+.layer-edges {
+  position: absolute;
+  left: 0;
+  top: 0;
+  z-index: 1;
+  overflow: visible;
+  pointer-events: none;
+}
+
+.empty {
+  margin: 0;
+  padding: 48px 16px;
+  text-align: center;
+  color: var(--nw-fg-muted);
+}
+
+/* Cards ----------------------------------------------------------------------------------- */
+
+.node {
+  position: absolute;
+  /* Its own stacking context: a card's handle and ring never draw over other cards. */
+  z-index: 0;
+  display: flex;
+  flex-direction: column;
+  background: var(--nw-card-bg);
+  border: 1px solid var(--nw-border);
+  border-radius: var(--nw-radius-card);
+  cursor: default;
+}
+
+/* As Obsidian draws a colored card (1.12, measured): the color at 70% as a 2px edge, and a 7% wash. */
+.node.colored {
+  border: 2px solid color-mix(in srgb, var(--nw-node-color) 70%, transparent);
+}
+
+.node.colored:not(.node-group) {
+  background: color-mix(in srgb, var(--nw-node-color) 7%, var(--nw-card-bg));
+}
+
+/* The name of a file or link card sits above it, as in Obsidian. */
+.node-caption {
+  position: absolute;
+  left: 0;
+  bottom: 100%;
+  max-width: 100%;
+  margin-bottom: 4px;
+  overflow: hidden;
+  color: var(--nw-fg-muted);
+  font-size: var(--nw-font-size);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.node-caption[data-action] {
+  cursor: pointer;
+}
+
+.node-caption[data-action]:hover {
+  color: var(--nw-fg);
+  text-decoration: underline;
+}
+
+/* Obsidian's tokens in card Markdown: ==highlight==, [[wikilinks]] (open the note), #tags. */
+.node mark.md-highlight,
+.list-item mark.md-highlight {
+  color: inherit;
+  background: color-mix(in srgb, var(--nw-color-3) 35%, transparent);
+  border-radius: 2px;
+}
+
+.md-wikilink {
+  color: var(--nw-link);
+}
+
+.md-wikilink[data-action] {
+  cursor: pointer;
+}
+
+.md-wikilink[data-action]:hover {
+  color: var(--nw-link-active);
+  text-decoration: underline;
+}
+
+.md-tag {
+  padding: 0 4px;
+  border-radius: 8px;
+  color: var(--nw-link);
+  background: color-mix(in srgb, var(--nw-link) 15%, transparent);
+}
+
+.node:focus-visible {
+  outline: none;
+}
+
+/* A gap in the canvas color, then the focus color, outside the card's own (colored) border;
+   --nw-ring is 2px divided by the zoom (main.ts), so the ring keeps its width on screen. */
+.node.selected,
+.node:focus-visible {
+  box-shadow: 0 0 0 var(--nw-ring, 2px) var(--nw-board-bg), 0 0 0 calc(var(--nw-ring, 2px) * 2) var(--nw-focus);
+}
+
+.node-body {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  padding: 8px 12px;
+  overflow-wrap: anywhere;
+}
+
+.node-text .node-body > .md > :first-child {
+  margin-top: 0;
+}
+
+.node-text .node-body > .md > :last-child {
+  margin-bottom: 0;
+}
+
+.file-body,
+.link-body,
+.unsupported-body {
+  padding-top: 6px;
+  padding-bottom: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.file-name,
+.link-url {
+  color: var(--nw-link);
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.link-url {
+  font-weight: normal;
+  word-break: break-all;
+}
+
+.file-name:hover,
+.link-url:hover {
+  color: var(--nw-link-active);
+  text-decoration: underline;
+}
+
+.file-path {
+  color: var(--nw-card-muted);
+  font-size: 12px;
+  line-height: 18px;
+}
+
+/* The error color with an icon, so it reads as an error in every theme. */
+.file-state {
+  color: var(--nw-error);
+  font-size: 12px;
+}
+
+.file-state::before {
+  content: '\26A0';
+  margin-right: 4px;
+}
+
+/* Dark themes' error color is too dim on tinted fills: mixed toward the foreground (>= 4.5:1). */
+body.vscode-dark .node .file-state {
+  color: color-mix(in srgb, var(--nw-error) 75%, var(--nw-fg));
+}
+
+/* The image as large as fits the card, ratio kept, centered: small ones grow as in Obsidian. */
+.image-body {
+  padding: 0;
+  overflow: hidden;
+}
+
+.file-image {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: center;
+}
+
+.node-unknown {
+  background: var(--nw-unsupported-bg);
+  border-style: dashed;
+}
+
+.unsupported-body {
+  color: var(--nw-card-muted);
+}
+
+.unsupported-type {
+  font-family: var(--nw-font-mono);
+  background: transparent;
+}
+
+/* Groups ---------------------------------------------------------------------------------- */
+
+/* A light wash of the border color, as Obsidian fills groups. */
+.node-group {
+  background: color-mix(in srgb, var(--nw-border) 7%, transparent);
+  overflow: visible;
+}
+
+.node-group.colored {
+  background: color-mix(in srgb, var(--nw-node-color) 7%, transparent);
+}
+
+.group-bg {
+  position: absolute;
+  inset: 0;
+  border-radius: calc(var(--nw-radius-card) - 2px);
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+.group-bg.bg-cover {
+  background-size: cover;
+}
+
+.group-bg.bg-ratio {
+  background-size: contain;
+}
+
+.group-bg.bg-repeat {
+  background-repeat: repeat;
+  background-position: 0 0;
+}
+
+.group-label {
+  position: absolute;
+  left: 0;
+  bottom: 100%;
+  max-width: 100%;
+  margin-bottom: 4px;
+  padding: 2px 8px;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  color: var(--nw-fg);
+  background: var(--nw-card-bg);
+  border: 1px solid var(--nw-node-color, var(--nw-border));
+  border-radius: 6px;
+  font-size: 16px;
+  line-height: 24px;
+  font-weight: 600;
+}
+
+/* Edges ----------------------------------------------------------------------------------- */
+
+.edge-line {
+  fill: none;
+  stroke: var(--nw-node-color, var(--nw-edge));
+  stroke-width: 2px;
+}
+
+.edge-arrow {
+  fill: var(--nw-node-color, var(--nw-edge));
+}
+
+.edge-label {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  width: max-content;
+  max-width: 240px;
+  padding: 2px 8px;
+  color: var(--nw-fg);
+  background: var(--nw-board-bg);
+  border: 1px solid var(--nw-node-color, var(--nw-border));
+  border-radius: 4px;
+  font-size: 12px;
+  line-height: 18px;
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+
+/* Short edges (geometry.ts): off the line, so the arrow heads stay visible. */
+.edge-label.label-above {
+  transform: translate(-50%, calc(-100% - 6px));
+}
+
+.edge-label.label-beside {
+  transform: translate(8px, -50%);
+  text-align: left;
+}
+
+/* List view ------------------------------------------------------------------------------- */
+
+/* Scrolls below the floating toolbar, so the toolbar never covers its scrollbar. */
+.list-host {
+  position: absolute;
+  inset: 44px 0 0 0;
+  overflow: auto;
+  padding: 4px 16px 24px;
+}
+
+.list-items {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 0;
+  list-style: none;
+}
+
+.list-item {
+  margin: 0 0 12px;
+  padding: 8px 12px;
+  background: var(--nw-card-bg);
+  border: 1px solid var(--nw-border);
+  border-radius: var(--nw-radius-card);
+}
+
+.list-title {
+  margin: 0 0 4px;
+  font-size: 13px;
+  line-height: 20px;
+  font-weight: 600;
+}
+
+.list-kind {
+  color: var(--nw-card-muted);
+  font-weight: normal;
+}
+
+.list-item p {
+  margin: 4px 0;
+}
+
+.list-links {
+  color: var(--nw-card-muted);
+  font-size: 12px;
+}
+
+.list-item:focus-visible {
+  outline: 2px solid var(--nw-focus);
+  outline-offset: 2px;
+}
+
+.list-members {
+  margin: 8px 0 0;
+}
+
+.list-members > .list-item {
+  margin-bottom: 8px;
+}
+
+.list-target {
+  padding: 0;
+  color: var(--nw-link);
+  background: transparent;
+  border: none;
+  font-size: inherit;
+  text-decoration: underline;
+}
+
+.list-target:hover {
+  color: var(--nw-link-active);
+  background: transparent;
+}
+
+.list-empty {
+  text-align: center;
+  color: var(--nw-fg-muted);
+}
+
+/* Read errors (canvas.md 2) --------------------------------------------------------------- */
+
+.error-host {
+  padding: 48px 16px;
+}
+
+.error-view {
+  max-width: 560px;
+  margin: 0 auto;
+  padding: 16px;
+  border: 1px solid var(--nw-border);
+  border-left: 3px solid var(--nw-error);
+  border-radius: 6px;
+  background: var(--nw-card-bg);
+}
+
+.error-title {
+  margin: 0 0 4px;
+  font-weight: 600;
+}
+
+.error-reason {
+  margin: 0 0 12px;
+  color: var(--nw-fg-muted);
+}
+
+/* Markdown in text cards (shared renderer, md-* classes) ---------------------------------- */
+
+.md-heading {
+  margin: 12px 0 4px;
+  line-height: 1.3;
+  font-weight: 600;
+}
+
+.md-h1 {
+  font-size: 1.6em;
+}
+
+.md-h2 {
+  font-size: 1.35em;
+}
+
+.md-h3 {
+  font-size: 1.2em;
+}
+
+.md-h4,
+.md-h5,
+.md-h6 {
+  font-size: 1em;
+}
+
+.md-paragraph {
+  margin: 0 0 8px;
+}
+
+.md-list {
+  margin: 0 0 8px;
+  padding-left: 20px;
+}
+
+.md-task {
+  list-style: none;
+  margin-left: -20px;
+}
+
+.md-checkbox {
+  margin: 0 6px 0 0;
+  vertical-align: middle;
+}
+
+.md-task-checked > .md-item-text {
+  color: var(--nw-fg-muted);
+  text-decoration: line-through;
+}
+
+.md-quote {
+  margin: 0 0 8px;
+  padding: 0 0 0 12px;
+  border-left: 3px solid var(--nw-border);
+  color: var(--nw-fg-muted);
+}
+
+.md-rule {
+  border: none;
+  border-top: 1px solid var(--nw-border);
+  margin: 8px 0;
+}
+
+.md-code-span {
+  font-family: var(--nw-font-mono);
+  font-size: 0.92em;
+  padding: 0 4px;
+  border-radius: 3px;
+  background: var(--nw-code-bg);
+}
+
+.md-code {
+  margin: 0 0 8px;
+}
+
+.md-code-lang {
+  display: block;
+  color: var(--nw-fg-muted);
+  font-size: 11px;
+}
+
+.md-code-block {
+  margin: 0;
+  padding: 8px;
+  overflow: auto;
+  border-radius: 4px;
+  background: var(--nw-code-bg);
+  font-family: var(--nw-font-mono);
+  font-size: 12px;
+  line-height: 18px;
+}
+
+.md-code-block code {
+  background: transparent;
+}
+
+.md-link {
+  color: var(--nw-link);
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.md-link:hover {
+  color: var(--nw-link-active);
+}
+
+.md-link-inert {
+  text-decoration: underline dotted;
+}
+
+.md-image {
+  color: var(--nw-fg-muted);
+  font-style: italic;
+}
+
+.md-table-wrap {
+  margin: 0 0 8px;
+  overflow-x: auto;
+}
+
+.md-table {
+  border-collapse: collapse;
+}
+
+.md-table th,
+.md-table td {
+  padding: 2px 8px;
+  border: 1px solid var(--nw-border);
+}
+
+.md-align-left {
+  text-align: left;
+}
+
+.md-align-center {
+  text-align: center;
+}
+
+.md-align-right {
+  text-align: right;
+}
+
+/* Editing (canvas.md 5) ----------------------------------------------------------------- */
+
+.node.editable {
+  cursor: move;
+}
+
+.node.editable .file-name,
+.node.editable .link-url {
+  cursor: pointer;
+}
+
+/* Bottom-right corner; its size is fixed on screen (--nw-handle from main.ts). */
+.resize-handle {
+  position: absolute;
+  right: calc(var(--nw-handle, 12px) / -2);
+  bottom: calc(var(--nw-handle, 12px) / -2);
+  z-index: 1;
+  width: var(--nw-handle, 12px);
+  height: var(--nw-handle, 12px);
+  border: calc(var(--nw-ring, 2px) / 2 + 0.5px) solid var(--nw-focus);
+  border-radius: 2px;
+  background: var(--nw-board-bg);
+  cursor: nwse-resize;
+  opacity: 0;
+}
+
+.node.selected > .resize-handle,
+.node:hover > .resize-handle,
+.node.dragging > .resize-handle {
+  opacity: 1;
+}
+
+.node.dragging {
+  box-shadow: 0 0 0 var(--nw-ring, 2px) var(--nw-board-bg), 0 0 0 calc(var(--nw-ring, 2px) * 2) var(--nw-focus), 0 8px 24px var(--nw-shadow);
+}
+
+.viewport.dragging-card,
+.viewport.dragging-card .node {
+  cursor: grabbing;
+}
+
+.node.editing .node-body {
+  padding: 4px;
+  overflow: hidden;
+}
+
+.text-editor {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  height: 100%;
+}
+
+.text-input {
+  flex: 1;
+  min-height: 40px;
+  width: 100%;
+  resize: none;
+  color: var(--nw-fg);
+  background: var(--nw-card-bg);
+  border: 1px solid var(--nw-focus);
+  border-radius: 4px;
+  font-family: var(--nw-font-mono);
+  font-size: 12px;
+  line-height: 18px;
+}
+
+.text-input:focus {
+  outline: none;
+}
+
+.text-input[readonly] {
+  color: var(--nw-fg-muted);
+}
+
+.text-editor-bar {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.text-editor-hint {
+  flex: 1;
+  min-width: 0;
+  color: var(--nw-card-muted);
+  font-size: 11px;
+  line-height: 16px;
+}
+
+/* Edit buttons and color picker above the selected card, in screen pixels. */
+.card-bar-host {
+  position: absolute;
+  z-index: 1;
+  transform: translateY(calc(-100% - 8px));
+}
+
+.card-bar {
+  display: flex;
+  gap: 2px;
+  padding: 2px;
+  background: var(--nw-popup-bg);
+  border: 1px solid var(--nw-popup-border);
+  border-radius: 6px;
+  box-shadow: 0 2px 8px var(--nw-shadow);
+  width: max-content;
+}
+
+.card-bar .tool {
+  height: 24px;
+  padding: 0 8px;
+  color: var(--nw-fg);
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  font-size: 12px;
+  line-height: 22px;
+}
+
+.card-bar .tool:hover,
+.card-bar .tool[aria-expanded='true'] {
+  background: var(--nw-toolbar-hover);
+  border-color: var(--nw-outline);
+}
+
+/* Above the bar, so it never covers the card's first line. */
+.color-picker {
+  position: absolute;
+  bottom: calc(100% + 4px);
+  left: 0;
+  display: flex;
+  gap: 6px;
+  padding: 6px;
+  background: var(--nw-popup-bg);
+  border: 1px solid var(--nw-popup-border);
+  border-radius: 6px;
+  box-shadow: 0 2px 8px var(--nw-shadow);
+  width: max-content;
+}
+
+.swatch {
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border: 1px solid var(--nw-border);
+  border-radius: 50%;
+  background: var(--nw-node-color);
+}
+
+.swatch:hover {
+  background: var(--nw-node-color);
+  border-color: var(--nw-fg);
+}
+
+.swatch-none,
+.swatch-none:hover {
+  background: linear-gradient(135deg, transparent 45%, var(--nw-error) 45%, var(--nw-error) 55%, transparent 55%), var(--nw-card-bg);
+}
+
+.swatch[aria-pressed='true'] {
+  box-shadow: 0 0 0 2px var(--nw-popup-bg), 0 0 0 4px var(--nw-focus);
+}
+
+.swatch[disabled] {
+  cursor: default;
+}
+
+.list-empty-group {
+  color: var(--nw-card-muted);
+  font-style: italic;
+}
+
+.node.editing > .resize-handle {
+  display: none;
+}
+
+.swatch {
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 20px;
+  color: var(--nw-board-bg);
+}
+
+.help-heading {
+  margin: 8px 0 4px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.help-heading:first-child {
+  margin-top: 0;
+}

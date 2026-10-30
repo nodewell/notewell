@@ -1,0 +1,6 @@
+{
+	"nodes": [
+		{"id":"s1","type":"text","text":"Quote \" back\\slash \/ tab\t ctl \u0001 \u00e9 é 한국어 😀 \ud83d\ude00","x":0,"y":0,"width":100,"height":100},
+		{"id":"\u0073\u0032","type":"text","text":"line1\r\nline2\nend","x":0,"y":200,"width":100,"height":100}
+	]
+}

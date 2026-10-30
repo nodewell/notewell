@@ -1,0 +1,5 @@
+{
+  "format": "YYYY년 MM월 DD일 dddd",
+  "folder": "Daily",
+  "template": "Templates/일일"
+}

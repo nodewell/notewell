@@ -1,0 +1,13 @@
+{
+	"nodes":[
+		{"id":"3e60eea8256ac47e","type":"group","x":-40,"y":-40,"width":680,"height":260,"label":"그룹"},
+		{"id":"52fd94f0e1c7ae8b","type":"file","file":"Notes/그림.png","x":440,"y":220,"width":200,"height":200},
+		{"id":"7da0014667868df0","type":"link","url":"https://example.com","x":700,"y":0,"width":400,"height":300},
+		{"id":"0ef984af45027cc7","type":"text","text":"한글 텍스트 😀 \"따옴표\" \\ 역슬래시 (VS Code)","x":60,"y":20,"width":260,"height":130},
+		{"id":"14b35a1674036d60","type":"text","text":"# 여러 줄\n\n- 하나\n- 둘","x":320,"y":0,"width":260,"height":160,"color":"2"},
+		{"id":"d29a1ddaef8cc442","type":"file","file":"Notes/프로젝트 A.md","x":0,"y":220,"width":400,"height":300}
+	],
+	"edges":[
+		{"id":"edge0000000001","fromNode":"0ef984af45027cc7","fromSide":"right","toNode":"14b35a1674036d60","toSide":"left","label":"선 라벨"}
+	]
+}

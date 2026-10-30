@@ -1,0 +1,27 @@
+{
+	"nodes":[
+		{"id":"33f5d9ab90a7917c","type":"group","x":-40,"y":-60,"width":940,"height":380,"label":"색 6가지"},
+		{"id":"ab7bf396100744b0","type":"group","x":-40,"y":420,"width":500,"height":220,"label":"무제 그룹"},
+		{"id":"090069074ee5cafc","type":"file","file":"Notes/프로젝트 A.md","x":620,"y":120,"width":260,"height":160},
+		{"id":"47f4192df8ee9fa7","type":"file","file":"Notes/그림.png","x":960,"y":-60,"width":200,"height":200},
+		{"id":"3f361b055642932c","type":"link","url":"https://example.com","x":960,"y":200,"width":260,"height":160},
+		{"id":"c830d9bc4cb0e1e8","type":"text","text":"색 1","x":-10,"y":0,"width":130,"height":80,"color":"1"},
+		{"id":"58e84df24fd4adbe","type":"text","text":"색 2","x":140,"y":0,"width":130,"height":80,"color":"2"},
+		{"id":"10b8dba9ccac393f","type":"text","text":"색 3","x":290,"y":0,"width":130,"height":80,"color":"3"},
+		{"id":"a5198fa1fc365476","type":"text","text":"색 4","x":440,"y":0,"width":130,"height":80,"color":"4"},
+		{"id":"43db3ed1d4573f97","type":"text","text":"색 5","x":590,"y":0,"width":130,"height":80,"color":"5"},
+		{"id":"061c78fb345965f7","type":"text","text":"색 6","x":740,"y":0,"width":130,"height":80,"color":"6"},
+		{"id":"1de06982e5faf6ac","type":"text","text":"# 제목\n\n**굵게** *기울임* ==강조==\n- 목록 하나\n- [ ] 체크\n\n[[프로젝트 A]] #태그","x":-10,"y":120,"width":260,"height":160,"color":"#8A2BE2"},
+		{"id":"9c71dfb14a769706","type":"text","text":"긴 글이 들어 있는 카드입니다. 카드보다 글이 길면 어떻게 잘리는지, 줄바꿈과 스크롤이 어떻게 되는지 봅니다. 한 번 더 길게 씁니다. 그리고 더 씁니다.","x":300,"y":120,"width":260,"height":160},
+		{"id":"1652959a74370342","type":"text","text":"그룹 안 A","x":-10,"y":470,"width":180,"height":100},
+		{"id":"9cc048f84eae0825","type":"text","text":"그룹 안 B","x":250,"y":470,"width":180,"height":100,"color":"5"}
+	],
+	"edges":[
+		{"id":"e1","fromNode":"c830d9bc4cb0e1e8","fromSide":"bottom","toNode":"1de06982e5faf6ac","toSide":"top"},
+		{"id":"e2","fromNode":"1de06982e5faf6ac","fromSide":"right","toNode":"9c71dfb14a769706","toSide":"left","label":"라벨 있는 선"},
+		{"id":"e3","fromNode":"9c71dfb14a769706","fromSide":"right","toNode":"090069074ee5cafc","toSide":"left","fromEnd":"arrow","color":"1"},
+		{"id":"e4","fromNode":"090069074ee5cafc","fromSide":"right","toNode":"3f361b055642932c","toSide":"left","toEnd":"none","color":"#00AA88"},
+		{"id":"e5","fromNode":"1652959a74370342","fromSide":"right","toNode":"9cc048f84eae0825","toSide":"left","color":"4","label":"그룹 안 선"},
+		{"id":"e6","fromNode":"061c78fb345965f7","fromSide":"right","toNode":"47f4192df8ee9fa7","toSide":"left"}
+	]
+}

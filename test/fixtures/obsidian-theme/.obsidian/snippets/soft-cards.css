@@ -1,0 +1,8 @@
+/* Synthetic snippet: overrides a theme value at equal weight (later wins). */
+.theme-dark {
+  --background-primary-alt: #26303f;
+}
+
+body {
+  --radius-s: 8px !important;
+}

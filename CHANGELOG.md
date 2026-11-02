@@ -2,6 +2,10 @@
 
 Notable changes in each Notewell release. While the version is below 1.0, a minor version may change behavior.
 
+## 0.8.2 — 2026-11-02
+
+- Marketplace package: commands and settings in Korean again. The extension itself is unchanged.
+
 ## 0.8.1 — 2026-11-02
 
 - Marketplace page: icon and links. The extension itself is unchanged.

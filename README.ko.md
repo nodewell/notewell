@@ -6,6 +6,8 @@ VS Code 안의 작업 보드 — Obsidian Kanban 보드와 Backlog.md 작업을 
 
 > **미리보기.** 0.8.0은 처음 공개하는 버전이라 다듬어지지 않은 곳이 있을 수 있습니다. 문제나 의견은 [GitHub 이슈](https://github.com/nodewell/notewell/issues)에 남겨 주세요.
 
+> **VS Code 설정.** Notewell은 기본적으로 VS Code 자체 설정을 바꾸지 않습니다. `notewell.kanban.rememberBoards`를 켜면 보드로 연 파일을 사용자 `settings.json`의 `workbench.editorAssociations`에 추가하고, 끄면 그 항목을 지웁니다.
+
 ![VS Code에서 보드로 연 Obsidian Kanban 보드](images/screenshots/kanban.png)
 
 ## 왜 필요한가
@@ -73,7 +75,7 @@ frontmatter에 `kanban-plugin:` 키가 있는 Markdown 파일은 보드로 열�
 - 열 너비는 보드 설정 "List width"를 따릅니다(없으면 Kanban 플러그인 기본값, 그것도 없으면 Obsidian과 같은 272px). 체크박스 버튼 옆 슬라이더로 그 보드의 너비를 바꿉니다. 끄는 동안 열이 따라 움직이고, 손을 떼면 보드 설정 블록의 `lane-width`를 한 번 써서 Obsidian에서도 같은 너비로 보입니다. 슬라이더를 두 번 클릭하면 기본 너비로 돌아갑니다.
 - 설정에서 날짜·시간 트리거를 바꾼 보드는 Obsidian과 같이 그 트리거로 쓴 날짜·시간만 날짜·시간으로 보입니다.
 - 아직 없는 것: 열 삭제, 아카이브 편집, 체크박스 스위치·열 너비 외의 보드 설정 편집.
-- VS Code가 보드를 바로 열도록(탐색기에서 열 때 텍스트 탭이 따로 생기지 않게), 보드로 연 파일을 VS Code 사용자 `settings.json`의 `workbench.editorAssociations`에 추가합니다. **텍스트로 열기**를 하면 그 항목을 지우고, `notewell.kanban.rememberBoards`를 끄면 모두 지웁니다.
+- VS Code가 보드를 바로 열도록(탐색기에서 열 때 텍스트 탭이 따로 생기지 않게) `notewell.kanban.rememberBoards`를 켤 수 있습니다 (기본은 꺼짐). 켜면 보드로 연 파일을 VS Code 사용자 `settings.json`의 `workbench.editorAssociations`에 추가합니다. **텍스트로 열기**를 하면 그 항목을 지우고, 설정을 끄면 모두 지웁니다.
 
 설정: `notewell.kanban.enabled`, `notewell.kanban.openBoardsByDefault`, `notewell.kanban.rememberBoards`, `notewell.kanban.saveOnEdit`, `notewell.kanban.doneLanes`, `notewell.kanban.style`, `notewell.kanban.cardBodies`, `notewell.kanban.cardPreview`.
 
@@ -138,7 +140,7 @@ Obsidian의 Daily notes나 Templates 설정이 있는 볼트용입니다. Obsidi
 ## 원칙
 
 - **원문 보존.** 조작으로 바뀌는 줄만 다시 씁니다. 열고 그대로 저장하면 파일이 바이트 단위로 같습니다.
-- **원래 도구를 따릅니다.** 원래 도구의 설정(`.obsidian/`, Backlog.md `config.yml`)을 읽기만 하고 쓰지 않습니다 (Notewell이 쓰는 설정은 위의 편집기 연결 같은 VS Code 설정뿐입니다). 파일을 고칠 때는 원래 도구가 함께 고치는 메타데이터도 똑같이 고칩니다.
+- **원래 도구를 따릅니다.** 원래 도구의 설정(`.obsidian/`, Backlog.md `config.yml`)을 읽기만 하고 쓰지 않습니다 (Notewell이 쓰는 설정은 자기 설정과, 켠 경우 위의 편집기 연결뿐입니다). 파일을 고칠 때는 원래 도구가 함께 고치는 메타데이터도 똑같이 고칩니다.
 - **런타임 의존성·네트워크·외부 프로세스 없음.** 원래 도구의 CLI를 실행하지 않고 파일 형식을 직접 따릅니다. 웹뷰는 엄격한 CSP 아래에서 동작합니다.
 
 ## 개발

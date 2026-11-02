@@ -2,7 +2,7 @@
 
 Notable changes in each Notewell release. While the version is below 1.0, a minor version may change behavior.
 
-## 0.8.0 — 2026-11-03
+## 0.8.0 — 2026-11-02
 
 First public release (preview).
 
@@ -21,3 +21,4 @@ First public release (preview).
 
 - Only the lines (or, in a canvas, the values) an action changes are rewritten, and the original tool keeps working on the same files. Edits go through the editor, so **Ctrl+Z** works.
 - No runtime dependencies and no network access. English and Korean.
+- VS Code's own settings stay untouched unless you turn on `notewell.kanban.rememberBoards`.

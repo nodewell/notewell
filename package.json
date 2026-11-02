@@ -24,16 +24,10 @@
     "Other"
   ],
   "keywords": [
-    "obsidian",
     "kanban",
-    "vault",
     "markdown",
-    "board",
-    "wikilink",
-    "notes",
-    "backlog",
-    "backlog.md",
-    "tasks"
+    "tasks",
+    "notes"
   ],
   "main": "./dist/extension.cjs",
   "activationEvents": [
@@ -294,7 +288,7 @@
         },
         "notewell.kanban.rememberBoards": {
           "type": "boolean",
-          "default": true,
+          "default": false,
           "scope": "application",
           "description": "%config.kanban.rememberBoards%"
         },

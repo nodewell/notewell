@@ -1,11 +1,11 @@
 {
   "extension.displayName": "Notewell",
-  "extension.description": "Task boards in VS Code for Obsidian Kanban and Backlog.md.",
+  "extension.description": "Task boards for Markdown files in VS Code. Changes no VS Code settings unless you opt in.",
   "config.kanban.enabled": "Enable the Kanban board feature.",
   "config.kanban.saveOnEdit": "Save the file right after each board change, so Obsidian and other tools see it immediately. When off, changes stay unsaved like normal edits.",
   "config.kanban.doneLanes": "Lane names that count as done lanes even without a **Complete** line (exact match). Cards moved into them are checked, cards moved out are unchecked.",
   "config.kanban.openBoardsByDefault": "Reopen Markdown files whose frontmatter has a kanban-plugin key as a board.",
-  "config.kanban.rememberBoards": "Remember each file shown as a board in the user setting workbench.editorAssociations, so VS Code opens it as a board directly (no extra text tab from the explorer). Open as Text removes the entry; turning this off removes all entries Notewell added.",
+  "config.kanban.rememberBoards": "Off by default. Remember each file shown as a board in the user setting workbench.editorAssociations, so VS Code opens it as a board directly (no extra text tab from the explorer). Open as Text removes the entry; turning this off removes all entries Notewell added.",
   "customEditor.kanban.displayName": "Notewell Kanban Board",
   "command.kanban.openAsBoard": "Open as Board",
   "command.kanban.openAsText": "Open as Text",

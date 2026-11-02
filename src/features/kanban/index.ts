@@ -142,7 +142,7 @@ export function registerKanban(context: vscode.ExtensionContext, deps: KanbanDep
 
   // Boards remembered in the user's editor associations (kanban.md 5).
   const associations = new BoardAssociations(context.globalState, KANBAN_VIEW_TYPE);
-  const rememberBoards = (): boolean => vscode.workspace.getConfiguration('notewell.kanban').get<boolean>('rememberBoards', true) !== false;
+  const rememberBoards = (): boolean => vscode.workspace.getConfiguration('notewell.kanban').get<boolean>('rememberBoards', false) === true;
   const remember = (uri: vscode.Uri): void => {
     if (AUTO_OPEN_SCHEMES.has(uri.scheme) && isMarkdown(uri) && rememberBoards() && kanbanSettings(uri).enabled) void associations.remember(uri);
   };

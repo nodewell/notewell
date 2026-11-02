@@ -6,6 +6,8 @@ Task boards in VS Code — work with your Obsidian Kanban boards and Backlog.md 
 
 > **Preview.** 0.8.0 is the first public release; expect rough edges. Please report problems and ideas in [GitHub issues](https://github.com/nodewell/notewell/issues).
 
+> **VS Code settings.** By default Notewell does not change VS Code's own settings. If you turn on `notewell.kanban.rememberBoards`, each file you open as a board is added to `workbench.editorAssociations` in your user `settings.json`; turning it off removes those entries.
+
 ![An Obsidian Kanban board opened as a board in VS Code](images/screenshots/kanban.png)
 
 ## Why
@@ -73,7 +75,7 @@ Markdown files whose frontmatter has a `kanban-plugin:` key open as a board (or 
 - Lane width follows the board's "List width" (or the Kanban plugin's default, or Obsidian's 272 px). The slider next to the checkbox button changes it for that board: lanes follow while you drag, and `lane-width` in the board's settings block is written once you let go, so Obsidian shows the same width. Double-click the slider for the default width.
 - Boards that use another date or time trigger in their settings show dates and times written with that trigger, as Obsidian does.
 - Not yet: deleting lanes, archive editing, and board settings other than the checkbox switch and lane width.
-- So that VS Code opens a board directly (no extra text tab from the Explorer), each file you open as a board is added to `workbench.editorAssociations` in your VS Code user `settings.json`. **Open as Text** removes its entry; turn off `notewell.kanban.rememberBoards` to remove them all.
+- So that VS Code opens a board directly (no extra text tab from the Explorer), you can turn on `notewell.kanban.rememberBoards` (off by default): each file you open as a board is then added to `workbench.editorAssociations` in your VS Code user `settings.json`. **Open as Text** removes its entry; turning the setting off removes them all.
 
 Settings: `notewell.kanban.enabled`, `notewell.kanban.openBoardsByDefault`, `notewell.kanban.rememberBoards`, `notewell.kanban.saveOnEdit`, `notewell.kanban.doneLanes`, `notewell.kanban.style`, `notewell.kanban.cardBodies`, `notewell.kanban.cardPreview`.
 
@@ -138,7 +140,7 @@ Settings: `notewell.canvas.enabled`, `notewell.canvas.editable`, `notewell.canva
 ## Principles
 
 - **Byte-preserving edits.** Only the lines an action changes are rewritten. Open and save without changes = identical file.
-- **Follows the original tool.** Reads its settings (`.obsidian/`, Backlog.md `config.yml`) and never writes to them (the only settings Notewell writes are VS Code settings, such as the editor associations above). When Notewell edits a file, it updates the same metadata the original tool would.
+- **Follows the original tool.** Reads its settings (`.obsidian/`, Backlog.md `config.yml`) and never writes to them (the only settings Notewell writes are its own and, if you turn them on, the editor associations above). When Notewell edits a file, it updates the same metadata the original tool would.
 - **No runtime dependencies, no network, no external processes.** Notewell never runs the original tool's CLI; it follows the file format directly. Webviews run under a strict Content Security Policy.
 
 ## Development

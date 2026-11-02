@@ -177,7 +177,8 @@ let registered: { subscriptions: { dispose(): void }[] } | undefined;
 function register(settings: Record<string, unknown> = {}, initialTabs: unknown[] = [], before?: () => void, globalState?: InstanceType<typeof fake.Memento>) {
   for (const d of registered?.subscriptions ?? []) d.dispose();
   fake.reset();
-  for (const [name, value] of Object.entries(settings)) fake.state.settings.set(name, value);
+  // Most tests here cover remembering, which is off by default.
+  for (const [name, value] of Object.entries({ 'notewell.kanban.rememberBoards': true, ...settings })) fake.state.settings.set(name, value);
   fake.state.groups = [{ viewColumn: 1, tabs: initialTabs }];
   before?.();
   const context = { extensionUri: EXT, subscriptions: [] as { dispose(): void }[], globalState: globalState ?? new fake.Memento() };
@@ -442,6 +443,14 @@ test('renamed files and folders move their entries; deleted ones lose them', asy
   fake.events.deleteFiles.fire({ files: [fake.Uri.file('/ws/moved'), fake.Uri.file('/ws/a2.md')] });
   await settle();
   assert.deepEqual(userAssociations(), { 'file:/ws/dirx.md': KANBAN_VIEW_TYPE });
+});
+
+test('off by default: a board shown for a file changes no VS Code setting', async () => {
+  register({}, [], () => fake.state.settings.delete('notewell.kanban.rememberBoards'));
+  fireTabs({ opened: [boardTab('/ws/board.md')] });
+  await settle();
+  assert.equal(userAssociations(), undefined);
+  assert.equal(fake.state.updates.length, 0);
 });
 
 test('turned off: nothing remembered, and entries already added are removed (also at activation)', async () => {

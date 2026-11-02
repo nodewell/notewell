@@ -73,6 +73,7 @@ import {
   storeFolds,
   type BodyFolds,
 } from './body-folds.ts';
+import { restoreScroll, sameScroll, type BoardScroll } from './board-scroll.ts';
 import { canPreview, chordStep, placePreview, PREVIEW_CLOSE_MS, PREVIEW_DELAY_MS, previewOnHover, renderCardPreview } from './preview.ts';
 import { laneWidthText, renderBoard, renderCardEditor, renderCardMenu, renderLaneMenu } from './render.ts';
 import { applyStyle } from './style.ts';
@@ -92,14 +93,20 @@ type EditField = HTMLInputElement | HTMLTextAreaElement;
 
 let current: { version: number; view: BoardView } | undefined;
 const collapsed = new Map<number, boolean>();
+const savedState = vscode.getState() as { bodies?: unknown; scroll?: unknown } | undefined;
 /**
  * Folded card bodies (kanban.md 3.2), kept in the webview state so they survive hiding the
  * tab and redraws; gone when the board is closed.
  */
-let folds: BodyFolds = restoreFolds((vscode.getState() as { bodies?: unknown } | undefined)?.bodies);
+let folds: BodyFolds = restoreFolds(savedState?.bodies);
+/** Where the board is scrolled, kept like the folds: redraws replace `.board`. */
+let boardScroll: BoardScroll = restoreScroll(savedState?.scroll);
+let scrollSaveTimer: ReturnType<typeof setTimeout> | undefined;
+const SCROLL_SAVE_DELAY_MS = 150;
 
 function saveState(): void {
-  vscode.setState({ bodies: storeFolds(folds) });
+  clearTimeout(scrollSaveTimer);
+  vscode.setState({ bodies: storeFolds(folds), scroll: boardScroll });
 }
 let pendingFocus: { kind: 'card'; ref: CardRef } | { kind: 'lane'; lane: number } | { kind: 'checkboxes' } | { kind: 'laneWidth' } | undefined;
 /**
@@ -208,6 +215,8 @@ function draw(): void {
   }
   wireHelp();
   showLaneWidth();
+  // After the width, which decides how far the lanes reach; before the focus, which may scroll.
+  app.querySelector('.board')?.scrollTo(boardScroll.left, boardScroll.top);
   if (keepPreview) {
     const location = locateEditor(current.view, { kind: 'card', id: keepPreview.id });
     if (location?.kind === 'card') openPreview(location.ref, keepPreview.byKeyboard);
@@ -1102,9 +1111,18 @@ document.addEventListener('mouseup', () => void (pointerDown = false), true);
 document.addEventListener(
   'scroll',
   (event) => {
-    if (preview && !preview.root.contains(event.target as Node)) closePreview();
+    const target = event.target as Node;
+    if (target instanceof HTMLElement && target.matches('.board')) {
+      const now = { left: target.scrollLeft, top: target.scrollTop };
+      // A redraw putting the board back where it was moved nothing.
+      if (sameScroll(now, boardScroll)) return;
+      boardScroll = now;
+      clearTimeout(scrollSaveTimer);
+      scrollSaveTimer = setTimeout(saveState, SCROLL_SAVE_DELAY_MS);
+    }
+    if (preview && !preview.root.contains(target)) closePreview();
     // The date picker is placed at its card; a scroll moves the card away from it.
-    if (datePicker && !datePicker.root.contains(event.target as Node)) closeDatePicker(false);
+    if (datePicker && !datePicker.root.contains(target)) closeDatePicker(false);
   },
   true,
 );

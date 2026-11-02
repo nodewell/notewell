@@ -190,7 +190,7 @@ test('main.ts: 500ms rest to open, 150ms grace to close, and every close route',
   assert.match(fn('openCardMenu'), /closePreview\(\);/);
   assert.match(fn('draw'), /locateEditor\(current\.view, \{ kind: 'card', id: keepPreview\.id \}\)/, 'redraw keeps it only for the same card');
   assert.match(main, /if \(key === 'Escape'\) \{[\s\S]*?closePreview\(\);/);
-  assert.match(main, /'scroll',\s*\(event\) => \{\s*if \(preview && !preview\.root\.contains\(event\.target as Node\)\) closePreview\(\);/);
+  assert.match(main, /'scroll',\s*\(event\) => \{[\s\S]*?if \(preview && !preview\.root\.contains\(target\)\) closePreview\(\);/);
   assert.match(main, /app\.addEventListener\('dragstart', \(event\) => \{\s*drag = undefined;\s*closePreview\(\);/);
   assert.match(main, /previewTimer = setTimeout\(\(\) => \{[\s\S]*?openPreview\(ref, false\);[\s\S]*?\}, PREVIEW_DELAY_MS\);/);
   // The grace close removes the open popup only: cancelling the pending open timer too would

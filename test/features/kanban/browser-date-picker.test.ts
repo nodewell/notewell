@@ -201,7 +201,7 @@ test('main.ts: picker keys stay inside, outside press / redraw / drag / resize c
   assert.match(main, /if \(datePicker && !datePicker\.root\.contains\(target\)\) closeDatePicker\(false\);/);
   assert.match(main, /app\.addEventListener\('dragstart', \(event\) => \{\n  drag = undefined;\n  closePreview\(\);\n  closeDatePicker\(false\);/);
   assert.match(main, /window\.addEventListener\('resize', \(\) => \{[\s\S]*?closeDatePicker\(false\);/);
-  assert.match(main, /if \(datePicker && !datePicker\.root\.contains\(event\.target as Node\)\) closeDatePicker\(false\);/, 'a scroll closes it');
+  assert.match(main, /'scroll',\s*\(event\) => \{[\s\S]*?if \(datePicker && !datePicker\.root\.contains\(target\)\) closeDatePicker\(false\);/, 'a scroll closes it');
   assert.match(main, /case 'pick-date': \{\n      const ref = cardRefOf\(action\);\n      if \(ref\) openDatePicker\(ref, action\);/);
   assert.match(main, /target\.matches\('\[data-action="pick-date"\]'\) && isPickDateKey\(event\)/);
 });

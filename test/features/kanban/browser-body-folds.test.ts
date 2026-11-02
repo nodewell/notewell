@@ -239,8 +239,9 @@ test('render: the lane fold toggle names the next action, only in lanes with bod
 
 test('the webview keeps folds in setState, prunes them on render and handles the commands', () => {
   const main = readFileSync(new URL('../../../src/features/kanban/browser/main.ts', import.meta.url), 'utf8');
-  assert.match(main, /restoreFolds\(\(vscode\.getState\(\)/);
-  assert.match(main, /vscode\.setState\(\{ bodies: storeFolds\(folds\) \}\)/);
+  assert.match(main, /const savedState = vscode\.getState\(\)/);
+  assert.match(main, /restoreFolds\(savedState\?\.bodies\)/);
+  assert.match(main, /vscode\.setState\(\{ bodies: storeFolds\(folds\), scroll: boardScroll \}\)/);
   assert.match(main, /message\?\.type === 'cardBodies'[\s\S]*?folds = foldAll\(message\.collapsed\);\s*saveState\(\);/);
   assert.match(main, /const pruned = pruneFolds\(folds, message\.view\);/);
   // The lane fold toggle stores its result per card in the same state.

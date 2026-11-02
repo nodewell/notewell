@@ -2,7 +2,7 @@
   "name": "notewell",
   "displayName": "%extension.displayName%",
   "description": "%extension.description%",
-  "version": "0.8.2",
+  "version": "0.8.3",
   "preview": true,
   "publisher": "nodewell",
   "icon": "images/icon.png",

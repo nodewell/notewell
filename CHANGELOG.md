@@ -2,6 +2,10 @@
 
 Notable changes in each Notewell release. While the version is below 1.0, a minor version may change behavior.
 
+## 0.8.3 — 2026-11-02
+
+- **Kanban**: the board scrolls inside the editor, so its horizontal scrollbar stays at the bottom of the window however long the lanes are. The scroll position is kept when the board redraws or the tab is hidden.
+
 ## 0.8.2 — 2026-11-02
 
 - Marketplace package: commands and settings in Korean again. The extension itself is unchanged.

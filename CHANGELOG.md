@@ -2,6 +2,10 @@
 
 Notable changes in each Notewell release. While the version is below 1.0, a minor version may change behavior.
 
+## 0.8.5 — 2026-11-06
+
+- Marketplace page: the extension's own description, tags and this change log. The extension itself is unchanged.
+
 ## 0.8.4 — 2026-11-06
 
 - Marketplace page: the full README with screenshots. The extension itself is unchanged.

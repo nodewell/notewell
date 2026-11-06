@@ -1,6 +1,6 @@
 # Notewell
 
-VS Code 안의 작업 보드 — Obsidian Kanban 보드와 Backlog.md 작업을 코드 바로 옆에서 다룹니다. 원래 도구는 같은 파일로 그대로 계속 쓸 수 있습니다.
+VS Code 안의 작업 보드 — Backlog.md 작업과 Obsidian Kanban 보드를 코드 바로 옆에서 다룹니다. 원래 도구는 같은 파일로 그대로 계속 쓸 수 있습니다.
 
 [English](README.md) · **한국어**
 
@@ -8,7 +8,7 @@ VS Code 안의 작업 보드 — Obsidian Kanban 보드와 Backlog.md 작업을 
 
 > **VS Code 설정.** Notewell은 기본적으로 VS Code 자체 설정을 바꾸지 않습니다. `notewell.kanban.rememberBoards`를 켜면 보드로 연 파일을 사용자 `settings.json`의 `workbench.editorAssociations`에 추가하고, 끄면 그 항목을 지웁니다.
 
-![VS Code에서 보드로 연 Obsidian Kanban 보드](images/screenshots/kanban.png)
+![VS Code에서 보드로 본 Backlog.md 작업](images/screenshots/backlog.png)
 
 ## 왜 필요한가
 
@@ -29,8 +29,8 @@ Notewell은 이 파일들을 VS Code 안에서 보드로 열어, 편집기를 �
 
 | 기능 | 원래 도구 |
 |---|---|
-| [Kanban](#kanban) — Kanban 커뮤니티 플러그인으로 만든 보드 보기·편집 | Obsidian |
 | [Backlog](#backlog) — 작업 보드·목록·상세 보기, 상태 바꾸기, 필드 편집, 완료 기준 체크 | Backlog.md |
+| [Kanban](#kanban) — Kanban 커뮤니티 플러그인으로 만든 보드 보기·편집 | Obsidian |
 | [볼트 링크와 첨부](#볼트-링크와-첨부) — 이름 바꿀 때 링크 자동 갱신, 첨부 붙여넣기, 백링크, 링크 미리보기 | Obsidian |
 | [데일리 노트와 템플릿](#데일리-노트와-템플릿) | Obsidian |
 | [Canvas](#canvas) — `.canvas` 파일(JSON Canvas) 보기·편집 | Obsidian |
@@ -59,6 +59,8 @@ VS Code 1.100 이상이 필요합니다. Obsidian 1.14, Kanban 플러그인 2.0.
 
 frontmatter에 `kanban-plugin:` 키가 있는 Markdown 파일은 보드로 열립니다. 다른 `.md` 파일도 **Notewell: 보드로 열기** / **텍스트로 열기**로 바꿀 수 있습니다.
 
+![VS Code에서 보드로 연 Obsidian Kanban 보드](images/screenshots/kanban.png)
+
 - **Notewell: 새 칸반 보드**(명령 팔레트, 또는 탐색기에서 폴더 오른쪽 클릭)로 Obsidian Kanban 형식의 새 보드 파일을 만듭니다. Obsidian 없이도 보드를 시작할 수 있습니다.
 - 카드 체크·해제, 카드 추가, 열 사이 카드 끌어 옮기기, 열 순서 바꾸기, 열 이름 바꾸기.
 - 카드를 여러 줄로 편집합니다. Obsidian과 같은 형식(들여쓴 이어지는 줄)으로 저장합니다. **Enter** 저장, **Shift+Enter** 줄바꿈, **Esc** 취소.
@@ -82,8 +84,6 @@ frontmatter에 `kanban-plugin:` 키가 있는 Markdown 파일은 보드로 열�
 ### Backlog
 
 [Backlog.md](https://github.com/MrLesk/Backlog.md) 프로젝트(워크스페이스 폴더 루트의 `backlog/`, `.backlog/` 또는 `backlog.config.yml`)가 있는 워크스페이스용입니다. 상태 표시줄의 **Backlog** 버튼, 탐색기에서 작업 폴더 오른쪽 클릭 메뉴의 **Backlog 열기**, 작업 파일을 텍스트로 열었을 때 제목줄의 보드 버튼(그 작업을 선택), 또는 명령 팔레트의 **Notewell: Backlog 열기**로 프로젝트의 작업을 편집기 탭에 엽니다. 브라우저도, `backlog` 프로세스도 필요 없습니다.
-
-![VS Code에서 보드로 본 Backlog.md 작업](images/screenshots/backlog.png)
 
 목록과 작업 상세를 함께 볼 수 있습니다. 내용을 한곳에서 읽고 필드, 본문, 체크 항목을 그 자리에서 고칩니다.
 

@@ -1,6 +1,6 @@
 {
   "extension.displayName": "Notewell",
-  "extension.description": "Obsidian 칸반 보드와 Backlog.md 작업을 VS Code에서. 직접 켜지 않으면 VS Code 설정을 바꾸지 않습니다.",
+  "extension.description": "Backlog.md 작업과 Obsidian 칸반 보드를 VS Code에서. 직접 켜지 않으면 VS Code 설정을 바꾸지 않습니다.",
   "config.kanban.enabled": "칸반 보드 기능을 켭니다.",
   "config.kanban.saveOnEdit": "보드에서 바꿀 때마다 바로 파일을 저장해 Obsidian 등 다른 도구가 곧바로 볼 수 있게 합니다. 끄면 일반 편집처럼 저장하지 않은 상태로 둡니다.",
   "config.kanban.doneLanes": "**Complete** 줄이 없어도 완료 열로 볼 열 이름 목록입니다 (정확히 일치). 이 열로 옮긴 카드는 체크되고, 이 열에서 다른 열로 옮긴 카드는 체크가 풀립니다.",

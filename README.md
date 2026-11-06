@@ -1,6 +1,6 @@
 # Notewell
 
-Task boards in VS Code — work with your Obsidian Kanban boards and Backlog.md tasks right next to your code, while the original tools keep working on the same files.
+Task boards in VS Code — work with your Backlog.md tasks and Obsidian Kanban boards right next to your code, while the original tools keep working on the same files.
 
 **English** · [한국어](README.ko.md)
 
@@ -8,7 +8,7 @@ Task boards in VS Code — work with your Obsidian Kanban boards and Backlog.md 
 
 > **VS Code settings.** By default Notewell does not change VS Code's own settings. If you turn on `notewell.kanban.rememberBoards`, each file you open as a board is added to `workbench.editorAssociations` in your user `settings.json`; turning it off removes those entries.
 
-![An Obsidian Kanban board opened as a board in VS Code](images/screenshots/kanban.png)
+![Backlog.md tasks on a board in VS Code](images/screenshots/backlog.png)
 
 ## Why
 
@@ -29,8 +29,8 @@ Each feature follows one original tool and only shows up in workspaces that use 
 
 | Feature | Original tool |
 |---|---|
-| [Kanban](#kanban) — view and edit boards made with the Kanban community plugin | Obsidian |
 | [Backlog](#backlog) — board, list and detail views of tasks; status changes, field editing and acceptance-criteria checks | Backlog.md |
+| [Kanban](#kanban) — view and edit boards made with the Kanban community plugin | Obsidian |
 | [Vault links and attachments](#vault-links-and-attachments) — link updates on rename, attachments, backlinks, link preview | Obsidian |
 | [Daily notes and templates](#daily-notes-and-templates) | Obsidian |
 | [Canvas](#canvas) — view and edit `.canvas` files (JSON Canvas) | Obsidian |
@@ -59,6 +59,8 @@ What changed in each version: [CHANGELOG.md](CHANGELOG.md).
 
 Markdown files whose frontmatter has a `kanban-plugin:` key open as a board (or use **Notewell: Open as Board** / **Open as Text** on any `.md` file).
 
+![An Obsidian Kanban board opened as a board in VS Code](images/screenshots/kanban.png)
+
 - **Notewell: New Kanban Board** (Command Palette, or right-click a folder in the Explorer) creates a new board file in the Obsidian Kanban format, so no Obsidian is needed to start one.
 - Check and uncheck cards, add cards, drag cards between lanes and lanes around, rename lanes.
 - Edit a card as multi-line text, the way Obsidian stores it (indented continuation lines): **Enter** saves, **Shift+Enter** starts a new line, **Esc** cancels.
@@ -82,8 +84,6 @@ Settings: `notewell.kanban.enabled`, `notewell.kanban.openBoardsByDefault`, `not
 ### Backlog
 
 For workspaces with a [Backlog.md](https://github.com/MrLesk/Backlog.md) project (`backlog/`, `.backlog/` or `backlog.config.yml` at a workspace folder root). Open the project's tasks in an editor tab — no browser, no `backlog` process — with the **Backlog** button in the status bar, **Open Backlog** on the task folder's right-click menu in the Explorer, the board button in the title bar of a task file opened as text (selects that task), or **Notewell: Open Backlog** in the Command Palette.
-
-![Backlog.md tasks on a board in VS Code](images/screenshots/backlog.png)
 
 The list and a task's details together: read everything in one place, and edit fields, text and checks right there.
 

@@ -2,7 +2,7 @@
   "name": "notewell",
   "displayName": "%extension.displayName%",
   "description": "%extension.description%",
-  "version": "0.8.5",
+  "version": "0.8.6",
   "preview": true,
   "publisher": "nodewell",
   "icon": "images/icon.png",
@@ -27,7 +27,10 @@
     "kanban",
     "markdown",
     "tasks",
-    "notes"
+    "notes",
+    "backlog",
+    "backlog.md",
+    "obsidian"
   ],
   "main": "./dist/extension.cjs",
   "activationEvents": [

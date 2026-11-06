@@ -1,6 +1,6 @@
 {
   "extension.displayName": "Notewell",
-  "extension.description": "Task boards for Markdown files in VS Code. Changes no VS Code settings unless you opt in.",
+  "extension.description": "Obsidian Kanban boards and Backlog.md tasks in VS Code, next to your code. Changes no VS Code settings unless you opt in.",
   "config.kanban.enabled": "Enable the Kanban board feature.",
   "config.kanban.saveOnEdit": "Save the file right after each board change, so Obsidian and other tools see it immediately. When off, changes stay unsaved like normal edits.",
   "config.kanban.doneLanes": "Lane names that count as done lanes even without a **Complete** line (exact match). Cards moved into them are checked, cards moved out are unchecked.",

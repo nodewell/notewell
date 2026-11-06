@@ -4,7 +4,7 @@ VS Code 안의 작업 보드 — Obsidian Kanban 보드와 Backlog.md 작업을 
 
 [English](README.md) · **한국어**
 
-> **미리보기.** 0.8.0은 처음 공개하는 버전이라 다듬어지지 않은 곳이 있을 수 있습니다. 문제나 의견은 [GitHub 이슈](https://github.com/nodewell/notewell/issues)에 남겨 주세요.
+> **미리보기.** 아직 1.0 전이라 다듬어지지 않은 곳이 있을 수 있습니다. 문제나 의견은 [GitHub 이슈](https://github.com/nodewell/notewell/issues)에 남겨 주세요.
 
 > **VS Code 설정.** Notewell은 기본적으로 VS Code 자체 설정을 바꾸지 않습니다. `notewell.kanban.rememberBoards`를 켜면 보드로 연 파일을 사용자 `settings.json`의 `workbench.editorAssociations`에 추가하고, 끄면 그 항목을 지웁니다.
 

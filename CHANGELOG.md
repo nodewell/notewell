@@ -2,6 +2,10 @@
 
 Notable changes in each Notewell release. While the version is below 1.0, a minor version may change behavior.
 
+## 0.8.4 — 2026-11-06
+
+- Marketplace page: the full README with screenshots. The extension itself is unchanged.
+
 ## 0.8.3 — 2026-11-02
 
 - **Kanban**: the board scrolls inside the editor, so its horizontal scrollbar stays at the bottom of the window however long the lanes are. The scroll position is kept when the board redraws or the tab is hidden.

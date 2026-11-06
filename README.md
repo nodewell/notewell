@@ -4,7 +4,7 @@ Task boards in VS Code — work with your Obsidian Kanban boards and Backlog.md 
 
 **English** · [한국어](README.ko.md)
 
-> **Preview.** 0.8.0 is the first public release; expect rough edges. Please report problems and ideas in [GitHub issues](https://github.com/nodewell/notewell/issues).
+> **Preview.** Notewell is below 1.0; expect rough edges. Please report problems and ideas in [GitHub issues](https://github.com/nodewell/notewell/issues).
 
 > **VS Code settings.** By default Notewell does not change VS Code's own settings. If you turn on `notewell.kanban.rememberBoards`, each file you open as a board is added to `workbench.editorAssociations` in your user `settings.json`; turning it off removes those entries.
 

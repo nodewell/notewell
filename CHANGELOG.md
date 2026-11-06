@@ -5,6 +5,7 @@ Notable changes in each Notewell release. While the version is below 1.0, a mino
 ## 0.8.6 — 2026-11-06
 
 - Marketplace: the description and tags name Backlog.md and Obsidian, so searches for them find Notewell. The README opens with Backlog.md. The extension itself is unchanged.
+- 0.8.1–0.8.6 changed only the Marketplace page, except 0.8.3 (Kanban scrolling).
 
 ## 0.8.5 — 2026-11-06
 

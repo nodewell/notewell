@@ -6,7 +6,7 @@ assignee:
   - '@alice'
   - '@bob'
 created_date: '2026-10-14 09:49'
-updated_date: '2026-10-14 10:18'
+updated_date: '2026-10-14T10:18:00Z'
 labels:
   - build
   - infra

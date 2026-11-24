@@ -30,8 +30,12 @@ export class Range {
 
 export class WorkspaceEdit {
   readonly entries: { uri: base.Uri; range: Range; newText: string }[] = [];
+  readonly renames: { from: base.Uri; to: base.Uri; overwrite: boolean }[] = [];
   replace(uri: base.Uri, range: Range, newText: string): void {
     this.entries.push({ uri, range, newText });
+  }
+  renameFile(from: base.Uri, to: base.Uri, options?: { overwrite?: boolean }): void {
+    this.renames.push({ from, to, overwrite: options?.overwrite === true });
   }
 }
 
@@ -141,6 +145,18 @@ Object.assign(base.workspace, {
       doc.isDirty = true;
       documentEvents.changed.fire({ document: doc });
     }
+    // As VS Code: the file moves, an open document (saved or not) moves with it.
+    for (const { from, to, overwrite } of edit.renames) {
+      log.push(`rename ${from.path} -> ${to.path}`);
+      const text = files.get(from.path);
+      if (text === undefined || (!overwrite && files.has(to.path) && to.path !== from.path)) return false;
+      files.delete(from.path);
+      files.set(to.path, text);
+      const doc = textDocuments.find((d) => d.uri.toString() === from.toString());
+      if (doc !== undefined) (doc as { uri: base.Uri }).uri = to;
+      base.fireWatcher('delete', from.path);
+      base.fireWatcher('create', to.path);
+    }
     return true;
   },
 });
@@ -226,8 +242,15 @@ export const statusItems: FakeStatusItem[] = [];
 /** Fire `{ focused: true }` when the window regains focus. */
 export const windowStateEvents = new EventEmitter<{ focused: boolean }>();
 
+/** Lines written to the extension's log output channel. */
+export const outputLog: string[] = [];
+
 export const window = {
   onDidChangeWindowState: windowStateEvents.event,
+  createOutputChannel(name: string) {
+    const write = (level: string) => (message: string) => void outputLog.push(`${level} ${message}`);
+    return { name, trace: write('trace'), debug: write('debug'), info: write('info'), warn: write('warn'), error: write('error'), dispose: () => undefined };
+  },
   registerWebviewPanelSerializer(viewType: string, serializer: Serializer) {
     serializers.set(viewType, serializer);
     return { dispose: () => void serializers.delete(viewType) };

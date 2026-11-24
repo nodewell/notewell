@@ -164,6 +164,12 @@ test('board view: task types from the config, CLI defaults otherwise', () => {
   assert.deepEqual(buildBacklogView(fixtureIndex(), custom, 'demo', DEFAULT_STRINGS).taskTypes, ['bug', 'Research']);
 });
 
+test('board view: configured labels are offered for editing (CLI 1.57.0), none when not set', () => {
+  const custom = parseConfig('labels: [frontend, "needs: review"]\n').config;
+  assert.deepEqual(buildBacklogView(fixtureIndex(), custom, 'demo', DEFAULT_STRINGS).configLabels, ['frontend', 'needs: review']);
+  assert.deepEqual(buildBacklogView(fixtureIndex(), parseConfig('').config, 'demo', DEFAULT_STRINGS).configLabels, []);
+});
+
 test('detail view: stage 2 field and section sources', () => {
   const detail = buildTaskDetail(fixtureIndex(), TASK1)!;
   assert.deepEqual(detail.fieldSources, {

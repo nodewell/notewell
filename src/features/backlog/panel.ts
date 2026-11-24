@@ -9,7 +9,8 @@ import type { ExtensionMessage } from './messages.ts';
 import type { BacklogView } from './view.ts';
 import { resolveProjectPath } from './paths.ts';
 import { backlogFolder, pathId, projectUri, type BacklogProject, type BacklogProjects } from './project.ts';
-import { BacklogSession, type BacklogPorts, type DependencyGraph } from './session.ts';
+import { BacklogSession, type BacklogPorts, type DependencyGraph, type WriteResult, type WrittenTo } from './session.ts';
+import { renamedTaskPath } from './task-filename.ts';
 import { errorStrings, messages, viewStrings } from './strings.ts';
 import { trackBusy } from './quiescence.ts';
 import { uiText } from './ui-text.ts';
@@ -38,6 +39,27 @@ function toWorkspaceEdit(uri: vscode.Uri, edits: readonly TextEdit[]): vscode.Wo
     edit.replace(uri, new vscode.Range(range.start.line, range.start.character, range.end.line, range.end.character), newText);
   }
   return edit;
+}
+
+/**
+ * Moves a task file to the name its new title gives (backlog.md 5.2), never over another file.
+ * Through the editor's file operation, so an open editor (with unsaved text or not) follows it.
+ */
+function renameEdit(from: vscode.Uri, to: vscode.Uri): vscode.WorkspaceEdit {
+  const edit = new vscode.WorkspaceEdit();
+  edit.renameFile(from, to, { overwrite: false });
+  return edit;
+}
+
+/** Whether something other than the file `self` is at `uri` (a case-only rename on Windows finds itself). */
+async function takenByOther(uri: vscode.Uri, self: vscode.Uri): Promise<boolean> {
+  if (pathId(uri) === pathId(self)) return false;
+  try {
+    await vscode.workspace.fs.stat(uri);
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 function openDocument(uri: vscode.Uri): vscode.TextDocument | undefined {
@@ -86,6 +108,16 @@ async function readFileText(uri: vscode.Uri): Promise<string> {
 }
 
 const panelTitle = (project: BacklogProject): string => `Backlog — ${uiText(project.name, 80)}`;
+
+/**
+ * A kept panel while the projects are still being read after a restart (backlog.md 4.1): a short
+ * notice instead of a blank page. A large project read for the first time after a reboot (cold
+ * file cache, virus scan of every file) can take a while. The webview's saved state is kept.
+ */
+export function showLoading(panel: vscode.WebviewPanel, extensionUri: vscode.Uri): void {
+  panel.webview.options = webviewOptions(extensionUri);
+  panel.webview.html = webviewHtml(panel.webview, extensionUri, { title: 'Backlog', scripts: [], placeholder: messages.loading() });
+}
 
 /** The Backlog folder (its pathId) a panel's webview saved with its state, if any (backlog.md 4.1). */
 export function savedProject(state: unknown): string | undefined {
@@ -155,16 +187,25 @@ export class BacklogPanels implements vscode.Disposable {
    * project is not here (gone, another workspace) or already has a panel: no empty tab stays.
    */
   restore(panel: vscode.WebviewPanel, state: unknown): void {
-    const saved = savedProject(state);
-    const found = this.#projects.projects;
-    // Saved before panels recorded their project: the only project, if there is just one.
-    const project = saved === undefined ? (found.length === 1 ? found[0] : undefined) : found.find((p) => pathId(backlogFolder(p)) === saved);
+    const project = this.#savedProject(state);
     if (project === undefined || this.#panels.has(pathId(backlogFolder(project)))) {
       panel.dispose();
       return;
     }
     panel.webview.options = webviewOptions(this.#extensionUri);
     this.#adopt(panel, project);
+  }
+
+  /** Whether a kept panel's project is among the projects found now. */
+  canRestore(state: unknown): boolean {
+    return this.#savedProject(state) !== undefined;
+  }
+
+  /** The project a kept panel saved; saved before panels recorded it: the only project, if there is just one. */
+  #savedProject(state: unknown): BacklogProject | undefined {
+    const saved = savedProject(state);
+    const found = this.#projects.projects;
+    return saved === undefined ? (found.length === 1 ? found[0] : undefined) : found.find((p) => pathId(backlogFolder(p)) === saved);
   }
 
   dispose(): void {
@@ -249,14 +290,28 @@ export class BacklogPanels implements vscode.Disposable {
         const uri = taskUri(path);
         if (uri === undefined) return 'stale';
         if (await gone(uri)) return 'stale';
+        // A title change renames the file as the CLI does (backlog.md 5.2); a name another file
+        // already has refuses the whole change, as in the CLI.
+        const shown = current();
+        const renamed = shown === undefined ? undefined : renamedTaskPath(path, before, after, shown.config.taskPrefix);
+        const target = renamed === undefined || shown === undefined ? undefined : projectUri(shown.folder, renamed);
+        if (target !== undefined && (await takenByOther(target, uri))) return 'nameTaken';
+        /** After the text is written: the rename, then the index reads both names again. */
+        const written = async (): Promise<WriteResult | WrittenTo> => {
+          this.#projects.refresh(uri);
+          if (target === undefined || renamed === undefined) return 'written';
+          // Refused (the name was taken meanwhile): the title is changed and the name stays.
+          if (!(await vscode.workspace.applyEdit(renameEdit(uri, target)))) return 'written';
+          this.#projects.refresh(target);
+          return { result: 'written', path: renamed };
+        };
         try {
           if (viaEditor(uri)) {
             const document = await documentOf(uri);
             if (!isUtf8Document(document)) return 'encoding';
             if (document.getText() !== before) return 'stale';
             if (!(await vscode.workspace.applyEdit(toWorkspaceEdit(uri, edits)))) return 'failed';
-            this.#projects.refresh(uri);
-            return 'written';
+            return await written();
           }
           // A virtual or remote file system that says it cannot be written: do not try.
           if (vscode.workspace.fs.isWritableFileSystem(uri.scheme) === false) return 'readOnly';
@@ -271,8 +326,7 @@ export class BacklogPanels implements vscode.Disposable {
           return await afterFailedWrite(uri, before, after);
         }
         // The index re-reads it now: a file watcher may be late or miss our own write.
-        this.#projects.refresh(uri);
-        return 'written';
+        return await written();
       },
       // Unreadable statuses (a broken config.yml) are not replaced by the defaults for writing.
       statuses: () => {

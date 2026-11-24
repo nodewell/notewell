@@ -4,7 +4,7 @@ title: Write the parser
 status: To Do
 assignee: []
 created_date: '2026-10-14 09:49'
-updated_date: '2026-10-17 09:19'
+updated_date: '2026-10-17T09:19:00Z'
 labels: []
 dependencies: []
 parent_task_id: TASK-1
@@ -26,7 +26,7 @@ Line-based parser.
 ## Comments
 
 <!-- COMMENTS:BEGIN -->
-created: 2026-10-17 09:19
+created: 2026-10-17T09:19:00Z
 
 ---
 

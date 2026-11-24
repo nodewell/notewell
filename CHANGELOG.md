@@ -2,6 +2,15 @@
 
 Notable changes in each Notewell release. While the version is below 1.0, a minor version may change behavior.
 
+## 0.9.0 — 2026-11-24
+
+- **Backlog**: follows Backlog.md 1.57.
+  - Dates are written as the CLI writes them since 1.56.0 (UTC to the second, `2026-11-24T08:02:12Z`). Both this and the older form are shown in local time.
+  - Changing a task's title renames its file to `<id> - <title>.md`, as the CLI does. An open editor follows the file, and undo restores the old name. If another file already has that name, the change is refused.
+  - Label suggestions include the labels set in `config.yml`.
+- **Backlog**: after VS Code restarts, a restored Backlog tab shows "Reading the Backlog.md project…" until the project is read, instead of a blank page. This could take a while for a large project on the first start after a reboot. A project that cannot be read at that moment is read once more before the tab closes.
+- **Backlog**: the "Notewell Backlog" output channel logs how long reading the projects took.
+
 ## 0.8.6 — 2026-11-06
 
 - Marketplace: the description and tags name Backlog.md and Obsidian, so searches for them find Notewell. The README opens with Backlog.md. The extension itself is unchanged.

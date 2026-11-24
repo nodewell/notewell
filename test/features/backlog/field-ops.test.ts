@@ -79,12 +79,12 @@ const CASES: Record<string, Case> = {
   'modified-add': (t, f, n) => setList(t, f, 'modified_files', ['src/a.ts'], n),
 };
 
-/** The minute the CLI wrote into updated_date, so the expected file can be compared exactly. */
+/** The time the CLI wrote into updated_date, so the expected file can be compared exactly. */
 function cliNow(after: string): Date {
-  const match = /^updated_date: '(\d{4})-(\d{2})-(\d{2}) (\d{2}):(\d{2})'$/m.exec(after);
+  const match = /^updated_date: '(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})Z'$/m.exec(after);
   assert.ok(match);
-  const [, y, mo, d, h, mi] = match.map(Number);
-  return new Date(Date.UTC(y, mo - 1, d, h, mi));
+  const [, y, mo, d, h, mi, s] = match.map(Number);
+  return new Date(Date.UTC(y, mo - 1, d, h, mi, s));
 }
 
 for (const [name, plan] of Object.entries(CASES)) {
@@ -144,7 +144,7 @@ function checkPreserved(path: string, name: string, plan: OperationPlan, doc: Li
   const afterDoc = parseLines(after);
   assert.equal(afterDoc.bom, doc.bom, `${path} ${name}: BOM`);
   assert.deepEqual(rest(afterDoc, [name, 'updated_date']), rest(doc, [name, 'updated_date']), `${path} ${name}: other lines`);
-  assert.match(after, /^updated_date: '2027-01-02 03:04'\r?$/m, `${path} ${name}: updated_date`);
+  assert.match(after, /^updated_date: '2027-01-02T03:04:00Z'\r?$/m, `${path} ${name}: updated_date`);
   check(after);
   return true;
 }
@@ -211,7 +211,7 @@ test('new keys go to the CLI key position, also next to an inserted updated_date
 
 test('a key with no known neighbour before it goes before the first known key after it', () => {
   const { doc, texts, file } = load('---\ncustom: 1\nstatus: To Do\nupdated_date: x\n---\n');
-  assert.equal(apply(doc, setScalar(texts, file, 'title', 'T', NOW)), "---\ncustom: 1\ntitle: T\nstatus: To Do\nupdated_date: '2027-01-02 03:04'\n---\n");
+  assert.equal(apply(doc, setScalar(texts, file, 'title', 'T', NOW)), "---\ncustom: 1\ntitle: T\nstatus: To Do\nupdated_date: '2027-01-02T03:04:00Z'\n---\n");
 });
 
 test('scalars: double quotes are kept, other values are written as the CLI writes them', () => {
@@ -288,7 +288,7 @@ test('no change plans nothing; unchanged list items keep their lines', () => {
   const quoted = load('---\nstatus: To Do\nupdated_date: x\nlabels:\n    - "kept"\n    - b\n---\n');
   assert.equal(
     apply(quoted.doc, setList(quoted.texts, quoted.file, 'labels', ['new', 'kept'], NOW)),
-    "---\nstatus: To Do\nupdated_date: '2027-01-02 03:04'\nlabels:\n    - new\n    - \"kept\"\n---\n",
+    "---\nstatus: To Do\nupdated_date: '2027-01-02T03:04:00Z'\nlabels:\n    - new\n    - \"kept\"\n---\n",
     'existing indent and item lines are reused',
   );
   assert.ok(doc.lines.length > 0);

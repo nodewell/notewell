@@ -4,7 +4,7 @@
 // before it in display order) or removed (with the blank line that separates it).
 import { findFences } from '../../core/fences.ts';
 import type { ExpectedLine, LineOperation } from '../../core/patch.ts';
-import { planUpdatedDate, refuse, type OperationPlan } from './operations.ts';
+import { formatTimestamp, planUpdatedDate, refuse, type OperationPlan } from './operations.ts';
 import { parseComments, SECTION_ORDER, type Section, type SectionName, type TaskFile } from './task-file.ts';
 
 export type EditableSection = 'description' | 'plan' | 'notes' | 'finalSummary';
@@ -44,11 +44,9 @@ const MARKERS: Readonly<Record<SectionName, string>> = {
 const EDITABLE: ReadonlySet<string> = new Set<EditableSection>(['description', 'plan', 'notes', 'finalSummary']);
 const ANY_MARKER = /^<!--\s*[A-Z_]+(?::[A-Z_]+)?:(BEGIN|END)\s*-->$/;
 
-const pad = (n: number): string => String(n).padStart(2, '0');
-
-/** `YYYY-MM-DD HH:mm` UTC, unquoted, as the CLI writes a comment's `created:`. */
+/** `YYYY-MM-DDTHH:MM:SSZ` (UTC), unquoted, as the CLI writes a comment's `created:` since 1.56.0. */
 export function formatCommentDate(now: Date): string {
-  return `${now.getUTCFullYear()}-${pad(now.getUTCMonth() + 1)}-${pad(now.getUTCDate())} ${pad(now.getUTCHours())}:${pad(now.getUTCMinutes())}`;
+  return formatTimestamp(now);
 }
 
 /** The CLI trims text; lines that look like section markers would break the file's structure. */

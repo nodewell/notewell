@@ -15,7 +15,7 @@ import { DEFAULT_STRINGS, type BacklogView, type TaskSummary } from '../../../sr
 import { listOf, scalarOf } from '../../../src/features/backlog/yaml-lite.ts';
 
 const NOW = new Date(Date.UTC(2026, 9, 15, 8, 30));
-const ERRORS: Record<ErrorReason, string> = { stale: 'stale', invalid: 'invalid', unsafe: 'unsafe', failed: 'failed', nothingToUndo: 'nothing', readOnly: 'readOnly', encoding: 'encoding' };
+const ERRORS: Record<ErrorReason, string> = { stale: 'stale', invalid: 'invalid', unsafe: 'unsafe', failed: 'failed', nothingToUndo: 'nothing', readOnly: 'readOnly', encoding: 'encoding', nameTaken: 'nameTaken' };
 const STATUSES = ['To Do', 'In Progress', 'Done'];
 
 /** A task as Backlog.md 1.54.0 writes it. */
@@ -684,7 +684,7 @@ test('18: 5,000 tasks index and build a view quickly; a 5 MB task is edited with
   await h.handle({ type: 'setStatus', path: P, statusLine: 'status: To Do', status: 'Done' });
   const after = h.files.get(P)!;
   assert.deepEqual(h.errors(), []);
-  assert.equal(after.length, big.length + 'Done'.length - 'To Do'.length + 0, 'same length apart from the status');
+  assert.equal(after.length, big.length + 'Done'.length - 'To Do'.length + 'T08:30:00Z'.length - ' 10:00'.length, 'same length apart from the status and updated_date');
   assertOnlyChanged(big, after, (t) => t.startsWith('status:') || isUpdated(t) || t.startsWith('- [x] #2') || t.startsWith('- [ ] #2'));
   assert.ok(performance.now() - t0 < 10_000, 'big file edits finish');
 });

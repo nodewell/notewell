@@ -33,10 +33,14 @@ test('dates: UTC values in local time across zones and DST changes', () => {
   // The spring gap: 2026-03-08 02:00-03:00 local does not exist.
   assert.equal(inZone('America/New_York', () => localDateTime('2026-03-08 07:30')), '2026-03-08 03:30');
   assert.equal(inZone('Asia/Kolkata', () => localDateTime('2026-10-15 08:00')), '2026-10-15 13:30', 'half-hour offsets');
+  // CLI 1.56.0 on: UTC to the second with Z; an offset is honoured.
+  assert.equal(inZone('Asia/Seoul', () => localDateTime('2026-12-31T20:00:45Z')), '2027-01-01 05:00');
+  assert.equal(inZone('Asia/Seoul', () => localDateTime('2026-10-15T17:30:00+09:00')), '2026-10-15 17:30');
+  assert.equal(inZone('UTC', () => localDateTime('2026-10-15T08:30Z')), '2026-10-15 08:30', 'no seconds');
 });
 
 test('dates: impossible or odd values are shown exactly as written, never rolled over', () => {
-  for (const value of ['2026-02-30 10:00', '2026-13-01 10:00', '2026-04-31 00:00', '2026-10-15 24:00', '2026-10-15 23:60', '2026-00-10 10:00', '0000-01-01 00:00', '2026-10-15', '2026-10-15T08:30Z', '', 'soon']) {
+  for (const value of ['2026-02-30 10:00', '2026-13-01 10:00', '2026-04-31 00:00', '2026-10-15 24:00', '2026-10-15 23:60', '2026-00-10 10:00', '0000-01-01 00:00', '2026-10-15', '2026-10-15T08:30:60Z', '2026-02-30T10:00:00Z', '2026-10-15T08:30:00+15:00', '2026-10-15T08:30:00+09:60', '2026-10-15T08:30:00 Z', '', 'soon']) {
     assert.equal(inZone('Asia/Seoul', () => localDateTime(value)), value, value);
   }
 });

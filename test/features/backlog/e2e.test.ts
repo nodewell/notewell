@@ -89,12 +89,12 @@ async function openPanel(target: string, path: WritePath) {
   return { panel, send, detail, errors, fileText, done };
 }
 
-/** The minute the CLI wrote, so updated_date comes out the same. */
+/** The time the CLI wrote, so updated_date comes out the same. */
 function cliNow(after: string): number {
-  const match = /^updated_date: '(\d{4})-(\d{2})-(\d{2}) (\d{2}):(\d{2})'$/m.exec(after);
+  const match = /^updated_date: '(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})Z'$/m.exec(after);
   if (!match) return Date.UTC(2027, 0, 1);
-  const [, y, mo, d, h, mi] = match.map(Number);
-  return Date.UTC(y, mo - 1, d, h, mi);
+  const [, y, mo, d, h, mi, s] = match.map(Number);
+  return Date.UTC(y, mo - 1, d, h, mi, s);
 }
 
 type Build = (detail: TaskDetail) => unknown;
@@ -180,7 +180,7 @@ for (const path of PATHS) {
     for (const [name, build] of Object.entries(CASES)) {
       const before = read(`ops/${name}.before.md`);
       const after = read(`ops/${name}.after.md`);
-      mock.timers.enable({ apis: ['Date'], now: cliNow(after) + 30_000 });
+      mock.timers.enable({ apis: ['Date'], now: cliNow(after) });
       try {
         const run = await openPanel(before, path);
         const message = build(run.detail());

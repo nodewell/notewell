@@ -32,7 +32,13 @@ export interface TaskChange {
  * - `readOnly`: the file system refused (read-only, permission denied, locked); nothing changed
  * - `encoding`: an editor holds the file decoded with another encoding than UTF-8
  */
-export type WriteResult = 'written' | 'stale' | 'failed' | 'readOnly' | 'encoding';
+export type WriteResult = 'written' | 'stale' | 'failed' | 'readOnly' | 'encoding' | 'nameTaken';
+
+/** Written, and the file moved to `path` because its title changed (backlog.md 5.2). */
+export interface WrittenTo {
+  readonly result: 'written';
+  readonly path: string;
+}
 
 export interface BacklogPorts {
   /** The current view, or undefined when there is no project to show. */
@@ -48,9 +54,10 @@ export interface BacklogPorts {
    * Writes a change to one task file (backlog.md 5.1): `before` is the text the change was
    * built on (from readTask), `after` the full new text and `edits` the same change as edits.
    * The panel chooses how (editor edit or direct file write) and refuses with 'stale' when the
-   * file no longer holds `before`.
+   * file no longer holds `before`. A title change also renames the file as the CLI does; the
+   * new path comes back as WrittenTo, and 'nameTaken' when another file has that name.
    */
-  readonly write: (path: string, change: TaskChange) => Promise<WriteResult>;
+  readonly write: (path: string, change: TaskChange) => Promise<WriteResult | WrittenTo>;
   /** Configured statuses (config.yml), in their spelling. */
   readonly statuses: () => readonly string[];
   /** Configured priorities (config.yml); the CLI's defaults when not given. */
@@ -404,7 +411,16 @@ export class BacklogSession {
   }
 
   async #apply(change: UndoEntry, edits: readonly TextEdit[], remember: boolean): Promise<WriteResult> {
-    const result = await this.#ports.write(change.path, { before: change.before, after: change.after, edits });
+    const outcome = await this.#ports.write(change.path, { before: change.before, after: change.after, edits });
+    const result = typeof outcome === 'string' ? outcome : outcome.result;
+    if (typeof outcome !== 'string' && outcome.path !== change.path) {
+      // Renamed with its title (backlog.md 5.2): the open detail and the undo entries follow it.
+      const from = change.path;
+      change = { ...change, path: outcome.path };
+      for (const [i, entry] of this.#undo.entries()) if (entry.path === from) this.#undo[i] = { ...entry, path: outcome.path };
+      if (this.#selected === from) this.#selected = outcome.path;
+      this.#ports.post({ type: 'moved', from, to: outcome.path });
+    }
     if (result === 'stale') {
       this.#stale();
       return result;

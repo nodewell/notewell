@@ -405,6 +405,20 @@ window.addEventListener('message', (event: MessageEvent<ExtensionMessage>) => {
       if (view === undefined) pendingSelect = message.path;
       else selectTask(message.path);
       break;
+    case 'moved': {
+      // Renamed with its title: the open detail, its drafts and pending edit stay with the task.
+      const drafts = stashed.get(message.from);
+      if (drafts !== undefined) {
+        stashed.delete(message.from);
+        stashed.set(message.to, drafts);
+      }
+      if (pendingFocus === message.from) pendingFocus = message.to;
+      if (state.selected !== message.from) break;
+      update({ selected: message.to });
+      if (detail?.path === message.from) detail = { ...detail, path: message.to };
+      if (deferredDetail?.path === message.from) deferredDetail = { ...deferredDetail, path: message.to };
+      break;
+    }
     case 'detail':
       if (message.path !== state.selected) break;
       if (message.detail !== null && submitted?.done(message.detail)) submitted = undefined;
@@ -888,7 +902,8 @@ function editOptions(v: BacklogView): DetailEditOptions {
     taskTypes: v.taskTypes,
     priorities: v.priorities,
     milestones: v.milestones,
-    labels: unique(v.tasks.flatMap((t) => t.labels)),
+    // Configured labels too (CLI 1.57.0); a new label can still be typed.
+    labels: unique([...(v.configLabels ?? []), ...v.tasks.flatMap((t) => t.labels)]),
     assignees: unique(v.tasks.flatMap((t) => t.assignees)),
     tasks: v.tasks.map((t) => ({ id: t.id, title: t.title })),
     editor,

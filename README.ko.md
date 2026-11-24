@@ -37,7 +37,7 @@ Notewell은 이 파일들을 VS Code 안에서 보드로 열어, 편집기를 �
 
 ## 설치
 
-VS Code 1.100 이상이 필요합니다. Obsidian 1.14, Kanban 플러그인 2.0.51, Backlog.md 1.54를 기준으로 만들고 확인했습니다.
+VS Code 1.100 이상이 필요합니다. Obsidian 1.14, Kanban 플러그인 2.0.51, Backlog.md 1.57을 기준으로 만들고 확인했습니다.
 
 - **Marketplace**: 확장 보기에서 **Notewell**을 검색하거나 [Marketplace 페이지](https://marketplace.visualstudio.com/items?itemName=nodewell.notewell)를 엽니다.
 - **.vsix 파일로**: [GitHub Releases](https://github.com/nodewell/notewell/releases)에서 `notewell-<버전>.vsix`를 내려받고, 명령 팔레트에서 **Extensions: Install from VSIX...**를 실행해 그 파일을 고릅니다.
@@ -94,7 +94,7 @@ frontmatter에 `kanban-plugin:` 키가 있는 Markdown 파일은 보드로 열�
 - **상세 보기**: 모든 필드와 설명·계획·메모·댓글·최종 요약을 Markdown으로 보여 주며 내용이 잘리지 않습니다. 완료 기준(AC)·완료 정의(DoD) 체크, 상태 바꾸기, 상위·하위·선행 작업으로 이동, 작업 파일을 텍스트로 열기.
 - **상세 보기에서 편집**: 제목, 우선순위, 유형, 마일스톤, 마감일, 담당자, 라벨, 선행 작업(없는 ID와 순환은 거부), 참고, 문서, 바뀐 파일. 설명·계획·메모·최종 요약 편집(**Ctrl+Enter** 저장, **Esc** 취소)과 댓글 추가.
 - **열 안 순서**: 카드를 위아래로 끌거나 **Alt+위/아래**.
-- 변경은 해당 줄만 고치고 Backlog.md CLI처럼 `updated_date`도 고치므로 CLI와 공식 브라우저가 같은 파일을 그대로 읽습니다. 패널에서 **Ctrl+Z**를 누르면 그 패널에서 한 마지막 변경을 되돌립니다. 그사이 작업 파일이 바뀌었으면 변경을 거부하고 다시 그립니다.
+- 변경은 해당 줄만 고치고 Backlog.md CLI처럼 `updated_date`도 고치므로 CLI와 공식 브라우저가 같은 파일을 그대로 읽습니다. 제목을 바꾸면 CLI처럼 작업 파일 이름도 바뀝니다. 패널에서 **Ctrl+Z**를 누르면 그 패널에서 한 마지막 변경을 되돌립니다. 그사이 작업 파일이 바뀌었으면 변경을 거부하고 다시 그립니다.
 - **레이아웃**: 상세 보기는 보드·목록 아래(기본) 또는 오른쪽에 열립니다. 툴바 버튼으로 바꿉니다 (`notewell.backlog.detailPosition`). 사이의 스플리터를 끌거나, 포커스한 뒤 화살표 키로 크기를 조절하고, 더블클릭하면 기본 크기로 돌아갑니다.
 - **다른 위치의 프로젝트**: 워크스페이스 폴더 루트에 있지 않은 Backlog.md 폴더는 **Notewell: Backlog 폴더 추가…** 또는 탐색기 폴더 메뉴의 **Backlog 폴더로 등록**으로 추가합니다 (`notewell.backlog.projects`에 저장).
 - 작업 만들기·보관·완료 처리, 초안, 문서, 결정, 통계는 Backlog.md CLI에 맡깁니다.

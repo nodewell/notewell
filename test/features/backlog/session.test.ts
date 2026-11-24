@@ -31,6 +31,7 @@ const ERRORS: Record<ErrorReason, string> = {
   nothingToUndo: 'E-nothing',
   readOnly: 'E-readOnly',
   encoding: 'E-encoding',
+  nameTaken: 'E-nameTaken',
 };
 
 const VIEW: BacklogView = {
@@ -195,7 +196,7 @@ test('setStatus edits, saves and undo restores the bytes exactly', async () => {
     await f.session.handle(setStatus(TASK1, line, 'Done'));
     const edited = f.files.get(TASK1)!.text;
     assert.notEqual(edited, source, label);
-    assert.ok(edited.includes("updated_date: '2026-10-14 11:22'"), label);
+    assert.ok(edited.includes("updated_date: '2026-10-14T11:22:00Z'"), label);
     assert.match(edited, /status: Done/, label);
     await f.session.handle({ type: 'undo' });
     assert.equal(f.files.get(TASK1)!.text, source, `${label}: undo restores the bytes`);
@@ -407,7 +408,7 @@ test('setSection and addComment edit the body; undo restores the bytes', async (
   await f.session.handle({ type: 'addComment', path: TASK1, text: 'Another comment', seen: 1 });
   const text = f.files.get(TASK1)!.text;
   assert.match(text, /<!-- SECTION:NOTES:BEGIN -->\nRewritten\n\nnotes\n<!-- SECTION:NOTES:END -->/);
-  assert.match(text, /\n---\n\ncreated: 2026-10-14 11:22\n\n---\n\nAnother comment\n\n---\n<!-- COMMENTS:END -->\n\n## Final Summary\n/);
+  assert.match(text, /\n---\n\ncreated: 2026-10-14T11:22:00Z\n\n---\n\nAnother comment\n\n---\n<!-- COMMENTS:END -->\n\n## Final Summary\n/);
   await f.session.handle({ type: 'setSection', path: TASK1, section: 'plan', text: 'x', expected: 'old plan' });
   await f.session.handle({ type: 'addComment', path: TASK1, text: 'a\n---\nb', seen: 2 });
   assert.deepEqual(types(f.posted), ['render', 'error:stale', 'error:invalid']);

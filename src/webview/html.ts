@@ -14,6 +14,8 @@ export interface WebviewPageOptions {
   readonly images?: boolean;
   /** `data-*` attributes of `<body>` for the page's script (escaped; other names are dropped). */
   readonly data?: Readonly<Record<string, string>>;
+  /** Plain text shown in `#app` until a script replaces it (escaped). */
+  readonly placeholder?: string;
 }
 
 const DATA_NAME = /^[a-z][a-z0-9-]*$/;
@@ -48,6 +50,7 @@ export function renderWebviewPage(options: WebviewPageOptions): string {
     .filter(([name]) => DATA_NAME.test(name))
     .map(([name, value]) => ` data-${name}="${escapeHtml(value)}"`)
     .join('');
+  const placeholder = options.placeholder === undefined ? '' : `<p class="placeholder">${escapeHtml(options.placeholder)}</p>`;
   return `<!DOCTYPE html>
 <html lang="${escapeHtml(options.lang)}">
   <head>
@@ -58,7 +61,7 @@ export function renderWebviewPage(options: WebviewPageOptions): string {
     ${styles}
   </head>
   <body${data}>
-    <div id="app"></div>
+    <div id="app">${placeholder}</div>
     ${scripts}
   </body>
 </html>

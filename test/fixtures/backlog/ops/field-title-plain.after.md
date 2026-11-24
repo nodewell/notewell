@@ -4,7 +4,7 @@ title: Parser v2
 status: To Do
 assignee: []
 created_date: '2026-10-14 09:49'
-updated_date: '2026-10-14 10:18'
+updated_date: '2026-10-14T10:18:00Z'
 labels: []
 dependencies: []
 parent_task_id: TASK-1

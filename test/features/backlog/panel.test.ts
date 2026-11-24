@@ -166,6 +166,76 @@ test('an editor with unsaved changes: WorkspaceEdit only, never saved or written
   projects.dispose();
 });
 
+// backlog.md 5.2: as the CLI since 1.56.0, a title change renames the file to `<id> - <title>.md`.
+const RENAMED = 'backlog/tasks/task-1 - Build-the-pipeline.md';
+const setTitle = (path: string, value: string, expected = 'title: Set up the build') => ({ type: 'setField', path, name: 'title', value, expected });
+
+test('a title change renames the task file; the open detail and undo follow it', async () => {
+  const { projects, panels, panel, types } = await openPanel();
+  const source = fake.files.get(FILE1)!;
+  panel.receive({ type: 'ready' });
+  panel.receive({ type: 'showTask', path: TASK1 });
+  await settle();
+  panel.posted.length = 0;
+  panel.receive(setTitle(TASK1, 'Build: the pipeline'));
+  await settle();
+  assert.deepEqual(fake.log, [`writeFile ${FILE1}`, `applyEdit `, `rename ${FILE1} -> ${ROOT}/${RENAMED}`]);
+  assert.equal(fake.files.has(FILE1), false);
+  assert.match(fake.files.get(`${ROOT}/${RENAMED}`)!, /\ntitle: 'Build: the pipeline'\n/);
+  assert.deepEqual(panel.posted.find((m) => (m as { type: string }).type === 'moved'), { type: 'moved', from: TASK1, to: RENAMED });
+  // The redraw after the index read both names sends the detail under the new path.
+  const detail = panel.posted.filter((m) => (m as { type: string }).type === 'detail').at(-1) as { path: string; detail: { title: string } | null };
+  assert.equal(detail.path, RENAMED);
+  assert.equal(detail.detail?.title, 'Build: the pipeline');
+  assert.deepEqual(types().filter((t) => t.startsWith('error')), []);
+  const render = panel.posted.filter((m) => (m as { type: string }).type === 'render').at(-1) as { view: { tasks: { path: string }[] } };
+  assert.ok(render.view.tasks.some((t) => t.path === RENAMED) && !render.view.tasks.some((t) => t.path === TASK1));
+
+  // Undo puts the old title back, and with it the old name.
+  fake.log.length = 0;
+  panel.receive({ type: 'undo' });
+  await settle();
+  assert.equal(fake.files.get(FILE1), source);
+  assert.equal(fake.files.has(`${ROOT}/${RENAMED}`), false);
+  assert.deepEqual(panel.posted.filter((m) => (m as { type: string }).type === 'moved').at(-1), { type: 'moved', from: RENAMED, to: TASK1 });
+  panels.dispose();
+  projects.dispose();
+});
+
+test('a title whose file name another file has is refused, as by the CLI; other edits never rename', async () => {
+  const { projects, panels, panel, types } = await openPanel();
+  const source = fake.files.get(FILE1)!;
+  fake.files.set(`${ROOT}/${RENAMED}`, 'not a task\n');
+  panel.receive(setTitle(TASK1, 'Build the pipeline'));
+  await settle();
+  assert.deepEqual(types().filter((t) => t.startsWith('error')), ['error:nameTaken']);
+  assert.equal(fake.files.get(FILE1), source, 'nothing written');
+  assert.equal(fake.files.get(`${ROOT}/${RENAMED}`), 'not a task\n');
+  // A file whose name does not follow the title keeps it when anything but the title changes.
+  fake.files.delete(`${ROOT}/${RENAMED}`);
+  fake.log.length = 0;
+  panel.receive(setDone);
+  await settle();
+  assert.deepEqual(fake.log, [`writeFile ${FILE1}`]);
+  panels.dispose();
+  projects.dispose();
+});
+
+test('a title change in an editor with unsaved text: edited there, and the editor moves with the file', async () => {
+  const { projects, panels, panel } = await openPanel();
+  const source = fake.files.get(FILE1)!;
+  const doc = fake.openEditorDocument(FILE1, `${source}typed but not saved\n`);
+  panel.receive(setTitle(TASK1, 'Build the pipeline'));
+  await settle();
+  assert.deepEqual(fake.log, [`applyEdit ${FILE1}`, `applyEdit `, `rename ${FILE1} -> ${ROOT}/${RENAMED}`]);
+  assert.equal(doc.uri.path, `${ROOT}/${RENAMED}`);
+  assert.match(doc.text, /\ntitle: Build the pipeline\n[\s\S]*typed but not saved\n$/);
+  assert.equal(doc.isDirty, true, 'still not saved');
+  assert.equal(fake.files.get(`${ROOT}/${RENAMED}`), source, 'the disk text moved unchanged');
+  panels.dispose();
+  projects.dispose();
+});
+
 test('saveOnEdit off: WorkspaceEdit only', async () => {
   const { projects, panels, panel } = await openPanel();
   fake.settings.set('notewell.backlog.saveOnEdit', false);
@@ -461,9 +531,13 @@ test('after a restart a kept panel shows its project again; otherwise it closes 
   panel.receive({ type: 'ready' });
   await settle();
   assert.equal((panel.posted[0] as { view: { project: string } }).view.project, 'two');
-  // A second kept panel of the same project closes; so does one of a project not found here.
+  assert.ok(fake.outputLog.some((line) => /^info Restoring a Backlog panel: waited \d+ ms/.test(line)));
+  // A second kept panel of the same project closes; so does one of a project not found here,
+  // after the workspace is read once more.
   assert.equal((await fake.restorePanel(BACKLOG_VIEW_TYPE, 'Backlog — two', { project: saved })).disposed, true);
+  fake.outputLog.length = 0;
   assert.equal((await fake.restorePanel(BACKLOG_VIEW_TYPE, 'Backlog — gone', { project: 'file:/work/gone/backlog' })).disposed, true);
+  assert.ok(fake.outputLog.some((line) => line.includes('its project was not found; reading the workspace again')));
   // Saved without a project (an older version): opened only when there is one project.
   assert.equal((await fake.restorePanel(BACKLOG_VIEW_TYPE, 'Backlog', {})).disposed, true);
   // The open command finds the restored panel instead of making another.
@@ -477,6 +551,21 @@ test('after a restart a kept panel shows its project again; otherwise it closes 
   panel = await fake.restorePanel(BACKLOG_VIEW_TYPE, 'Backlog', null);
   assert.equal(panel.disposed, false, 'the only project');
   assert.equal(panel.title, 'Backlog — demo');
+  ctx.dispose();
+
+  // While the projects are read the kept panel shows a notice, never a blank page; closed
+  // meanwhile, it stays closed and nothing is drawn into it.
+  reset();
+  ctx = context();
+  registerBacklog(ctx as never);
+  const restoring = fake.restorePanel(BACKLOG_VIEW_TYPE, 'Backlog — demo', { project: saved });
+  panel = fake.panels.at(-1)!;
+  assert.match(panel.html, /<p class="placeholder">Reading the Backlog\.md project…<\/p>/);
+  assert.doesNotMatch(panel.html, /<script/);
+  panel.close();
+  await restoring;
+  assert.equal(panel.disposed, true);
+  assert.doesNotMatch(panel.html, /backlog\.js/);
   ctx.dispose();
 
   // Turned off: the kept panel closes and nothing starts.

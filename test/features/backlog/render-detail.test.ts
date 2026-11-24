@@ -220,7 +220,11 @@ test('localDateTime converts stored UTC to local time and keeps other values', (
     localDateTime('2026-10-14 09:49'),
     `${expected.getFullYear()}-${pad(expected.getMonth() + 1)}-${pad(expected.getDate())} ${pad(expected.getHours())}:${pad(expected.getMinutes())}`,
   );
-  for (const value of ['2026-10-14', 'soon', '2026-10-14T09:49:00Z']) assert.equal(localDateTime(value), value);
+  // The CLI's format since 1.56.0 (seconds, Z) and an explicit offset name the same moment.
+  for (const value of ['2026-10-14T09:49:00Z', '2026-10-14T09:49:59Z', '2026-10-14T18:49:00+09:00', '2026-10-14T05:49-0400']) {
+    assert.equal(localDateTime(value), localDateTime('2026-10-14 09:49'), value);
+  }
+  for (const value of ['2026-10-14', 'soon']) assert.equal(localDateTime(value), value);
 });
 
 test('fields: task links, missing tasks, urls and paths', () => {

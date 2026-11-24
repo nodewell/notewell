@@ -16,5 +16,5 @@ test('viewStrings() covers DEFAULT_STRINGS with the same English text', () => {
 test('errorStrings() has one message per ErrorReason', () => {
   const body = source.slice(source.indexOf('export function errorStrings'), source.indexOf('export const messages'));
   const names = [...body.matchAll(/(\w+): vscode\.l10n\.t\(/g)].map((m) => m[1]).sort();
-  assert.deepEqual(names, ['encoding', 'failed', 'invalid', 'nothingToUndo', 'readOnly', 'stale', 'unsafe']);
+  assert.deepEqual(names, ['encoding', 'failed', 'invalid', 'nameTaken', 'nothingToUndo', 'readOnly', 'stale', 'unsafe']);
 });

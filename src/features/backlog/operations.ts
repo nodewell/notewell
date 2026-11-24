@@ -36,10 +36,15 @@ export interface ToggleCheckRequest {
 
 const pad = (n: number): string => String(n).padStart(2, '0');
 
-/** `'YYYY-MM-DD HH:mm'` in UTC, quotes included, as the CLI writes `updated_date`. */
-export function formatUpdatedDate(now: Date): string {
+/** UTC to the second, `YYYY-MM-DDTHH:MM:SSZ`, as the CLI writes timestamps since 1.56.0. */
+export function formatTimestamp(now: Date): string {
   const date = `${now.getUTCFullYear()}-${pad(now.getUTCMonth() + 1)}-${pad(now.getUTCDate())}`;
-  return `'${date} ${pad(now.getUTCHours())}:${pad(now.getUTCMinutes())}'`;
+  return `${date}T${pad(now.getUTCHours())}:${pad(now.getUTCMinutes())}:${pad(now.getUTCSeconds())}Z`;
+}
+
+/** `'YYYY-MM-DDTHH:MM:SSZ'` (UTC), quotes included, as the CLI writes `updated_date`. */
+export function formatUpdatedDate(now: Date): string {
+  return `'${formatTimestamp(now)}'`;
 }
 
 export const refuse = (reason: OperationFailure): OperationPlan => ({ ok: false, reason });

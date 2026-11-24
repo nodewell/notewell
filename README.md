@@ -37,7 +37,7 @@ Each feature follows one original tool and only shows up in workspaces that use 
 
 ## Install
 
-Requires VS Code 1.100 or later. Built and checked against Obsidian 1.14, the Kanban plugin 2.0.51 and Backlog.md 1.54.
+Requires VS Code 1.100 or later. Built and checked against Obsidian 1.14, the Kanban plugin 2.0.51 and Backlog.md 1.57.
 
 - **Marketplace**: search for **Notewell** in the Extensions view, or open the [Marketplace page](https://marketplace.visualstudio.com/items?itemName=nodewell.notewell).
 - **From a .vsix**: download `notewell-<version>.vsix` from [GitHub Releases](https://github.com/nodewell/notewell/releases), then run **Extensions: Install from VSIX...** from the Command Palette and pick that file.
@@ -94,7 +94,7 @@ The list and a task's details together: read everything in one place, and edit f
 - **Details**: every field, the description, plan, notes, comments and final summary, rendered as Markdown and never cut off. Check off acceptance criteria and Definition of Done items, change the status, follow links to parent, subtasks and dependencies, and open the task file as text.
 - **Editing in the details**: title, priority, type, milestone, due date, assignees, labels, dependencies (unknown IDs and cycles are refused), references, documentation and modified files; edit the description, plan, notes and final summary (**Ctrl+Enter** saves, **Esc** cancels) and add comments.
 - **Order within a column**: drag a card up or down, or **Alt+Up/Down**.
-- Changes edit only the lines involved and update `updated_date` the way the Backlog.md CLI does, so the CLI and its browser keep reading the same files. **Ctrl+Z** in the panel undoes the last change made there. If a task file changed meanwhile, the change is refused and the panel redraws.
+- Changes edit only the lines involved and update `updated_date` the way the Backlog.md CLI does, so the CLI and its browser keep reading the same files. Changing a title renames the task file to match, as the CLI does. **Ctrl+Z** in the panel undoes the last change made there. If a task file changed meanwhile, the change is refused and the panel redraws.
 - **Layout**: details open below the board or list (default) or on the right — switch with the toolbar buttons (`notewell.backlog.detailPosition`). Drag the splitter between them, or focus it and use the arrow keys, to resize; double-click resets it.
 - **Projects in other folders**: a Backlog.md folder that isn't at a workspace folder root can be added with **Notewell: Add Backlog Folder…** or **Register as Backlog Folder** on the folder's Explorer menu (stored in `notewell.backlog.projects`).
 - Creating, archiving or completing tasks, drafts, documents, decisions and statistics stay with the Backlog.md CLI.

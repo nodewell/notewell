@@ -153,6 +153,7 @@ export function buildBacklogView(
     unreadable: index.unreadable,
     milestones: index.milestones.map((m) => ({ id: m.id, title: m.title })),
     taskTypes: config.types,
+    configLabels: config.labels,
     priorities: config.priorities,
     detailPosition,
     layout,

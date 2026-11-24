@@ -168,6 +168,8 @@
   "Details on the right": "상세 보기 오른쪽",
   "Resize details": "상세 보기 크기 조절",
   "Notewell Backlog": "Notewell Backlog",
+  "Reading the Backlog.md project…": "Backlog.md 프로젝트를 읽는 중…",
+  "The title was not changed: the task file would be renamed as Backlog.md does, and another file already has that name.": "제목을 바꾸지 않았습니다. Backlog.md처럼 작업 파일 이름도 바뀌어야 하는데, 그 이름의 파일이 이미 있습니다.",
   "Open the Backlog.md board": "Backlog.md 보드 열기",
   "{0}: open the Backlog.md board": "{0}: Backlog.md 보드 열기",
   "Several files match \"{0}\". Choose one to open": "\"{0}\"에 맞는 파일이 여러 개입니다. 열 파일을 고르세요",

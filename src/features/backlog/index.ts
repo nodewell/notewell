@@ -2,7 +2,7 @@
 // open command and its entry points (command palette, status bar, Explorer context menu on a
 // project's task folder, editor title of a task file), and registering Backlog folders by hand.
 import * as vscode from 'vscode';
-import { BACKLOG_VIEW_TYPE, BacklogPanels, backlogSettings } from './panel.ts';
+import { BACKLOG_VIEW_TYPE, BacklogPanels, backlogSettings, showLoading } from './panel.ts';
 import { backlogFolder, BacklogProjects, pathId, projectUri, type BacklogProject, type RegisteredFolder } from './project.ts';
 import { messages } from './strings.ts';
 import { uiLabel } from './ui-text.ts';
@@ -134,6 +134,10 @@ export function registerBacklog(context: vscode.ExtensionContext): void {
   status.command = COMMANDS.open;
   context.subscriptions.push(status);
 
+  /** Timings and restore decisions, for problems that only show up on someone's machine. */
+  const log = vscode.window.createOutputChannel(messages.statusBarName(), { log: true });
+  context.subscriptions.push(log);
+
   // Context keys and the status bar follow the detected projects; turned off, nothing shows.
   const sync = (): void => {
     const found = backlogSettings().enabled ? (projects?.projects ?? []) : [];
@@ -156,6 +160,7 @@ export function registerBacklog(context: vscode.ExtensionContext): void {
 
   // Detection starts only while the feature is enabled.
   const start = (): Promise<void> => {
+    const reading = Date.now();
     starting ??= BacklogProjects.create({
       onBrokenConfig: (folder, configFile, error) =>
         void vscode.window.showWarningMessage(messages.brokenConfig(vscode.Uri.joinPath(folder, configFile).fsPath, error)),
@@ -170,6 +175,8 @@ export function registerBacklog(context: vscode.ExtensionContext): void {
         return;
       }
       projects = created;
+      const found = created.projects.map((p) => `${p.name} (${p.index.byPath.size} tasks)`);
+      log.info(`Read ${found.length} Backlog.md project(s) in ${Date.now() - reading} ms${found.length === 0 ? '' : `: ${found.join(', ')}`}.`);
       panels = new BacklogPanels(context.extensionUri, created, context.workspaceState);
       context.subscriptions.push(created, panels, created.onDidChange(sync));
       sync();
@@ -263,10 +270,24 @@ export function registerBacklog(context: vscode.ExtensionContext): void {
     // found each shows its own again, or closes (turned off, project gone).
     vscode.window.registerWebviewPanelSerializer(BACKLOG_VIEW_TYPE, {
       deserializeWebviewPanel: async (panel, state) => {
+        let closed = false;
+        const closing = panel.onDidDispose(() => void (closed = true));
         if (backlogSettings().enabled) {
+          // Not a blank page while the projects are read (slow on the first start after a reboot).
+          showLoading(panel, context.extensionUri);
+          const waiting = Date.now();
           await start();
           await projects?.idle();
+          // A read that failed right after a reboot (a drive not ready yet) is tried once more:
+          // closing the panel would drop it for good.
+          if (!closed && panels !== undefined && !panels.canRestore(state)) {
+            log.info('Restoring a Backlog panel: its project was not found; reading the workspace again.');
+            await projects?.rescan();
+          }
+          log.info(`Restoring a Backlog panel: waited ${Date.now() - waiting} ms for the projects.`);
         }
+        closing.dispose();
+        if (closed) return;
         if (panels === undefined) panel.dispose();
         else panels.restore(panel, state);
       },

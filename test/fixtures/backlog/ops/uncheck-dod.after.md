@@ -5,7 +5,7 @@ status: Done
 assignee:
   - '@alice'
 created_date: '2026-10-14 09:49'
-updated_date: '2026-10-14 13:08'
+updated_date: '2026-10-14T13:08:00Z'
 labels:
   - build
   - infra

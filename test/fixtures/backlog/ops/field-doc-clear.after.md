@@ -5,7 +5,7 @@ status: In Progress
 assignee:
   - '@alice'
 created_date: '2026-10-14 09:49'
-updated_date: '2026-10-14 10:19'
+updated_date: '2026-10-14T10:19:00Z'
 labels:
   - build
   - infra

@@ -126,6 +126,7 @@ export function errorStrings(): Readonly<Record<ErrorReason, string>> {
     nothingToUndo: vscode.l10n.t('There is nothing to undo in this panel.'),
     readOnly: vscode.l10n.t('The task file could not be written (read-only, permission denied or in use). Nothing was changed.'),
     encoding: vscode.l10n.t('This task file is not UTF-8 text, or an editor shows it with another encoding. Nothing was changed: reopen it with UTF-8 encoding.'),
+    nameTaken: vscode.l10n.t('The title was not changed: the task file would be renamed as Backlog.md does, and another file already has that name.'),
   };
 }
 
@@ -144,6 +145,7 @@ export const messages = {
   pathOutsideProject: () => vscode.l10n.t('This path is outside the project and was not opened.'),
   fileNotFound: (path: string) => vscode.l10n.t('"{0}" was not found.', uiMessageArg(path)),
   statusBarName: () => vscode.l10n.t('Notewell Backlog'),
+  loading: () => vscode.l10n.t('Reading the Backlog.md project…'),
   statusBarTooltip: () => vscode.l10n.t('Open the Backlog.md board'),
   statusBarTooltipProject: (project: string) => vscode.l10n.t('{0}: open the Backlog.md board', uiLabel(project, 80)),
 };

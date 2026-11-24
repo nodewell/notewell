@@ -26,6 +26,8 @@ export interface WebviewHtmlOptions {
   readonly images?: boolean;
   /** `data-*` attributes of the page's `<body>`, read by its script. */
   readonly data?: Readonly<Record<string, string>>;
+  /** Plain text shown until a script draws the page (a page without scripts shows only this). */
+  readonly placeholder?: string;
 }
 
 export function webviewHtml(
@@ -43,5 +45,6 @@ export function webviewHtml(
     scriptUris: options.scripts.map(assetUri),
     images: options.images === true,
     ...(options.data === undefined ? {} : { data: options.data }),
+    ...(options.placeholder === undefined ? {} : { placeholder: options.placeholder }),
   });
 }

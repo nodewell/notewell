@@ -89,3 +89,10 @@ textarea::placeholder {
 [hidden] {
   display: none !important;
 }
+
+/* Text a page shows before its script draws (or instead of one, while the extension loads). */
+.placeholder {
+  margin: 0;
+  padding: 12px 16px;
+  color: var(--vscode-descriptionForeground);
+}

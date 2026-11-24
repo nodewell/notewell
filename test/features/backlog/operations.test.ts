@@ -17,7 +17,7 @@ import { fieldOf } from '../../../src/features/backlog/yaml-lite.ts';
 const fixtures = new URL('../../fixtures/backlog/', import.meta.url);
 const read = (path: string): string => readFileSync(new URL(path, fixtures), 'utf8');
 const STATUSES = ['To Do', 'In Progress', 'Done'];
-const NOW = new Date(Date.UTC(2026, 9, 14, 9, 50, 30));
+const NOW = new Date(Date.UTC(2026, 9, 14, 9, 50));
 const LATER = new Date(Date.UTC(2027, 0, 2, 3, 4));
 
 /** Applies a plan with the core patch engine; throws if the engine refuses it. */
@@ -37,10 +37,11 @@ function load(source: string) {
 const statusLine = (texts: readonly string[], file: ReturnType<typeof parseTaskFile>): string =>
   texts[fieldOf(file.fields, 'status')?.line ?? -1] ?? '';
 
-test('formatUpdatedDate: UTC minutes with single quotes', () => {
-  assert.equal(formatUpdatedDate(NOW), "'2026-10-14 09:50'");
-  assert.equal(formatUpdatedDate(LATER), "'2027-01-02 03:04'");
-  assert.equal(formatUpdatedDate(new Date('2026-12-31T23:59:59.999-01:00')), "'2027-01-01 00:59'");
+test('formatUpdatedDate: UTC seconds (CLI 1.56.0 on) with single quotes', () => {
+  assert.equal(formatUpdatedDate(NOW), "'2026-10-14T09:50:00Z'");
+  assert.equal(formatUpdatedDate(new Date(Date.UTC(2026, 9, 14, 9, 50, 30, 999))), "'2026-10-14T09:50:30Z'", 'seconds kept, milliseconds dropped');
+  assert.equal(formatUpdatedDate(LATER), "'2027-01-02T03:04:00Z'");
+  assert.equal(formatUpdatedDate(new Date('2026-12-31T23:59:59.999-01:00')), "'2027-01-01T00:59:59Z'");
 });
 
 // --- CLI parity: the ops fixtures, byte for byte ---
@@ -98,7 +99,7 @@ function assertOnlyChanged(before: LineDocument, afterSource: string, targets: r
   const beforeUpdated = updatedLine(before.lines);
   const afterUpdated = updatedLine(after.lines);
   assert.ok(afterUpdated !== -1, `${label}: updated_date present`);
-  assert.match(after.lines[afterUpdated].text, /^updated_date: '\d{4}-\d{2}-\d{2} \d{2}:\d{2}'$/, label);
+  assert.match(after.lines[afterUpdated].text, /^updated_date: '\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z'$/, label);
   const rest = after.lines.filter((_, i) => i !== afterUpdated);
   const original = before.lines.filter((_, i) => i !== beforeUpdated);
   const shift = (i: number) => (beforeUpdated !== -1 && i > beforeUpdated ? i - 1 : i);
@@ -199,7 +200,7 @@ test('status: only configured statuses (case-insensitive); other-status can move
 test('status: the same status plans nothing; a case difference is normalised', () => {
   const { doc, texts, file } = load('---\nstatus: to do\nupdated_date: x\n---\n');
   const plan = planSetStatus(texts, file, { status: 'To Do', statusLine: 'status: to do', statuses: STATUSES }, NOW);
-  assert.equal(apply(doc, plan), "---\nstatus: To Do\nupdated_date: '2026-10-14 09:50'\n---\n");
+  assert.equal(apply(doc, plan), "---\nstatus: To Do\nupdated_date: '2026-10-14T09:50:00Z'\n---\n");
   const same = load("---\nstatus: To Do\nupdated_date: '2020-01-01 00:00'\n---\n");
   const none = planSetStatus(same.texts, same.file, { status: 'to do', statusLine: 'status: To Do', statuses: STATUSES }, NOW);
   assert.ok(none.ok);
@@ -222,13 +223,13 @@ test('status: a stale status line, unknown or missing status, no frontmatter', (
 test('updated_date: inserted after status when there is no created_date', () => {
   const { doc, texts, file } = load('---\nid: X\nstatus: To Do\ntitle: T\n---\n');
   const plan = planSetStatus(texts, file, { status: 'Done', statusLine: 'status: To Do', statuses: STATUSES }, NOW);
-  assert.equal(apply(doc, plan), "---\nid: X\nstatus: Done\nupdated_date: '2026-10-14 09:50'\ntitle: T\n---\n");
+  assert.equal(apply(doc, plan), "---\nid: X\nstatus: Done\nupdated_date: '2026-10-14T09:50:00Z'\ntitle: T\n---\n");
 });
 
 test('updated_date: inserted after a multi-line created_date field; CRLF kept', () => {
   const { doc, texts, file } = load('---\r\nstatus: To Do\r\ncreated_date:\r\n  - x\r\nid: X\r\n---\r\n');
   const plan = planSetStatus(texts, file, { status: 'Done', statusLine: 'status: To Do', statuses: STATUSES }, NOW);
-  assert.equal(apply(doc, plan), "---\r\nstatus: Done\r\ncreated_date:\r\n  - x\r\nupdated_date: '2026-10-14 09:50'\r\nid: X\r\n---\r\n");
+  assert.equal(apply(doc, plan), "---\r\nstatus: Done\r\ncreated_date:\r\n  - x\r\nupdated_date: '2026-10-14T09:50:00Z'\r\nid: X\r\n---\r\n");
 });
 
 test('updated_date: in an unknown shape the whole operation is refused', () => {
@@ -259,7 +260,7 @@ test('toggle: unchecking [X] writes [ ]; checking keeps the rest of the line', (
   const plan = planToggleCheck(texts, file, { list: 'dod', line: 16, source: '- [X] #1 upper-case check', checked: false }, NOW);
   const after = apply(doc, plan);
   assert.match(after, /\n- \[ \] #1 upper-case check\n/);
-  assert.match(after, /\nupdated_date: '2026-10-14 09:50'\n/);
+  assert.match(after, /\nupdated_date: '2026-10-14T09:50:00Z'\n/);
 });
 
 test('toggle: the same state plans nothing', () => {
@@ -301,7 +302,7 @@ test('an indented --- inside a block scalar does not end the frontmatter (writes
   const { doc, texts, file } = load(source);
   assert.deepEqual(file.frontmatter, { openLine: 0, closeLine: 8 });
   const after = apply(doc, planSetStatus(texts, file, { status: 'Done', statusLine: 'status: To Do', statuses: STATUSES }, NOW));
-  assert.equal(after, "---\nid: X\nnotes: |\n  before\n  ---\n  after\nstatus: Done\ncreated_date: '2026-10-01 10:00'\nupdated_date: '2026-10-14 09:50'\n---\n\nBody\n");
+  assert.equal(after, "---\nid: X\nnotes: |\n  before\n  ---\n  after\nstatus: Done\ncreated_date: '2026-10-01 10:00'\nupdated_date: '2026-10-14T09:50:00Z'\n---\n\nBody\n");
 });
 
 test('no-frontmatter variant: status change is refused', () => {

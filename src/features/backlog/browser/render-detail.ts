@@ -18,28 +18,42 @@ import type { ChecklistView, ReadOnlyNotice, TaskDetail, TaskRef, ViewStrings } 
 import { renderMarkdown } from '../../../webview/markdown-render.ts';
 
 const WEB_URL = /^https?:\/\/\S/i;
-const STORED_DATE = /^(\d{4})-(\d{2})-(\d{2}) (\d{2}):(\d{2})$/;
+const STORED_DATE = /^(\d{4})-(\d{2})-(\d{2})[ T](\d{2}):(\d{2})(?::(\d{2})(?:\.\d{1,3})?)?(Z|[+-]\d{2}:?\d{2})?$/;
 const DATE_INPUT = /^\d{4}-\d{2}-\d{2}$/;
 
 const pad = (n: number): string => String(n).padStart(2, '0');
 
+/** A stored value's own time zone (`Z` or an offset); without one it is UTC, as the CLI reads it. */
+export const hasZone = (value: string): boolean => /(?:Z|[+-]\d{2}:?\d{2})$/.test(value);
+
 /**
- * A stored `YYYY-MM-DD HH:mm` UTC value in local time, same format (backlog.md 0, dates).
- * Other values are returned as written.
+ * A stored date and time in local time as `YYYY-MM-DD HH:mm` (backlog.md 0, dates): the CLI's
+ * `YYYY-MM-DDTHH:MM:SSZ` (1.56.0 on), the older `YYYY-MM-DD HH:mm` (UTC), and values with an
+ * offset. Other values are returned as written.
  */
 export function localDateTime(value: string): string {
   const match = STORED_DATE.exec(value);
   if (match === null) return value;
-  const [, y, mo, d, h, mi] = match.map(Number);
-  const date = new Date(Date.UTC(y, mo - 1, d, h, mi));
+  const [y, mo, d, h, mi] = match.slice(1, 6).map(Number);
+  const s = match[6] === undefined ? 0 : Number(match[6]);
+  const zone = match[7];
+  const fields = new Date(Date.UTC(y, mo - 1, d, h, mi, s));
   // Date.UTC rolls impossible values over (Feb 30 becomes Mar 2, 24:00 the next day): such a
   // value is shown as written rather than as another date. Years below 100 map to 19xx there.
   if (
-    Number.isNaN(date.getTime()) || y < 100 ||
-    date.getUTCFullYear() !== y || date.getUTCMonth() !== mo - 1 || date.getUTCDate() !== d || date.getUTCHours() !== h || date.getUTCMinutes() !== mi
+    Number.isNaN(fields.getTime()) || y < 100 ||
+    fields.getUTCFullYear() !== y || fields.getUTCMonth() !== mo - 1 || fields.getUTCDate() !== d ||
+    fields.getUTCHours() !== h || fields.getUTCMinutes() !== mi || fields.getUTCSeconds() !== s
   ) {
     return value;
   }
+  let offset = 0;
+  if (zone !== undefined && zone !== 'Z') {
+    const [, sign, oh, om] = /^([+-])(\d{2}):?(\d{2})$/.exec(zone)!;
+    if (Number(oh) > 14 || Number(om) > 59) return value;
+    offset = (sign === '-' ? -1 : 1) * (Number(oh) * 60 + Number(om));
+  }
+  const date = new Date(fields.getTime() - offset * 60_000);
   return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}`;
 }
 
@@ -141,7 +155,7 @@ export function renderDetail<E extends DomElement<E>>(
   const invalid = (field: string): Record<string, string> =>
     edit?.error?.field === field ? { 'aria-invalid': 'true', 'aria-describedby': errorId(field) } : {};
 
-  const date = (value: string): E => el('span', { className: 'detail-date', text: localDateTime(value), attrs: { title: `${value} UTC` } });
+  const date = (value: string): E => el('span', { className: 'detail-date', text: localDateTime(value), attrs: { title: hasZone(value) ? value : `${value} UTC` } });
 
   const priorityNames: Record<string, string> = { high: strings.priorityHigh, medium: strings.priorityMedium, low: strings.priorityLow };
 

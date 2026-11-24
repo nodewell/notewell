@@ -125,7 +125,7 @@ export type WebviewMessage = MessageOf<typeof WEBVIEW_MESSAGES>;
 export const validateWebviewMessage = defineMessages(WEBVIEW_MESSAGES);
 
 /** Why a change was not applied. */
-export type ErrorReason = 'stale' | 'invalid' | 'unsafe' | 'failed' | 'nothingToUndo' | 'readOnly' | 'encoding';
+export type ErrorReason = 'stale' | 'invalid' | 'unsafe' | 'failed' | 'nothingToUndo' | 'readOnly' | 'encoding' | 'nameTaken';
 
 /** Extension -> webview (trusted direction). */
 export type ExtensionMessage =
@@ -135,5 +135,7 @@ export type ExtensionMessage =
   | { readonly type: 'error'; readonly reason: ErrorReason; readonly message: string }
   /** Select a task and open its details, e.g. when the panel was opened from that task's file. */
   | { readonly type: 'select'; readonly path: string }
+  /** A task file was renamed with its title (backlog.md 5.2): an open detail follows it. */
+  | { readonly type: 'moved'; readonly from: string; readonly to: string }
   /** The project behind the panel is gone (for now); a later 'render' brings the board back. */
   | { readonly type: 'unavailable' };

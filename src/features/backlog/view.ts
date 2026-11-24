@@ -69,6 +69,11 @@ export interface BacklogView {
   readonly milestones: readonly { readonly id: string; readonly title: string }[];
   /** Task types offered when editing (backlog.md 2.2; the CLI defaults unless configured). */
   readonly taskTypes: readonly string[];
+  /**
+   * Labels from config.yml, offered when editing labels with those already on tasks (as the CLI
+   * browser does since 1.57.0); missing from an older extension host.
+   */
+  readonly configLabels?: readonly string[];
   /** Configured priority order, highest first (backlog.md 2.2), for sorting by priority. */
   readonly priorities: readonly string[];
   /** Where the detail pane sits (backlog.md 4.1, notewell.backlog.detailPosition). */

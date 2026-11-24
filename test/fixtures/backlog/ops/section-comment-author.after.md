@@ -4,7 +4,7 @@ title: Ship it
 status: Done
 assignee: []
 created_date: '2026-10-14 09:49'
-updated_date: '2026-10-17 09:19'
+updated_date: '2026-10-17T09:19:00Z'
 labels: []
 dependencies: []
 ordinal: 4000
@@ -25,7 +25,7 @@ Release notes.
 
 <!-- COMMENTS:BEGIN -->
 author: @dana
-created: 2026-10-17 09:19
+created: 2026-10-17T09:19:00Z
 
 ---
 

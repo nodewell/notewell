@@ -44,8 +44,12 @@ test('panel writes only through applyEdit or workspace.fs.writeFile, to an index
   const panel = textOf('panel.ts');
   // backlog.md 5.1: a WorkspaceEdit (unsaved editor or saveOnEdit off), or the exact bytes written
   // directly. Never document.save: save participants (formatters, whitespace trimming) must not run.
-  assert.deepEqual([...panel.matchAll(/vscode\.workspace\.applyEdit\(/g)].length, 1);
+  assert.deepEqual([...panel.matchAll(/vscode\.workspace\.applyEdit\(/g)].length, 2);
   assert.match(panel, /vscode\.workspace\.applyEdit\(toWorkspaceEdit\(uri, edits\)\)/);
+  // backlog.md 5.2: the one rename, of that task file after a title change, never over another file.
+  assert.match(panel, /vscode\.workspace\.applyEdit\(renameEdit\(uri, target\)\)/);
+  assert.deepEqual([...panel.matchAll(/\.renameFile\(/g)].length, 1, 'one rename');
+  assert.match(panel, /edit\.renameFile\(from, to, \{ overwrite: false \}\)/);
   assert.deepEqual([...panel.matchAll(/\.writeFile\(/g)].length, 1, 'one direct write');
   assert.match(panel, /vscode\.workspace\.fs\.writeFile\(uri, new TextEncoder\(\)\.encode\(text\)\)/);
   assert.doesNotMatch(panel, /\.save\(/, 'no document.save');

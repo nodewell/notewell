@@ -57,10 +57,10 @@ const CASES: Record<string, Case> = {
 };
 
 function cliNow(after: string): Date {
-  const match = /^updated_date: '(\d{4})-(\d{2})-(\d{2}) (\d{2}):(\d{2})'$/m.exec(after);
+  const match = /^updated_date: '(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})Z'$/m.exec(after);
   assert.ok(match);
-  const [, y, mo, d, h, mi] = match.map(Number);
-  return new Date(Date.UTC(y, mo - 1, d, h, mi));
+  const [, y, mo, d, h, mi, s] = match.map(Number);
+  return new Date(Date.UTC(y, mo - 1, d, h, mi, s));
 }
 
 for (const [name, plan] of Object.entries(CASES)) {
@@ -152,7 +152,7 @@ test('preservation: setting, creating and removing each section changes nothing 
         assert.equal(endsWithNewline(after), endsWithNewline(source), `${path} ${name}: end of file`);
         const data = taskData(lineTexts(parseLines(after)));
         assert.equal(data[name], text === '' ? null : text, `${path} ${name}`);
-        assert.match(after, /^updated_date: '2027-01-02 03:04'\r?$/m);
+        assert.match(after, /^updated_date: '2027-01-02T03:04:00Z'\r?$/m);
         changed++;
       }
     }
@@ -180,7 +180,7 @@ test('preservation: adding a comment changes nothing else', () => {
     assert.equal(endsWithNewline(after), endsWithNewline(source), `${path}: end of file`);
     const comments = taskData(lineTexts(parseLines(after))).comments!;
     assert.deepEqual(comments.slice(0, -1), before.comments ?? [], `${path}: earlier comments kept`);
-    assert.deepEqual(comments.at(-1), { author: null, created: '2027-01-02 03:04', body: 'A *new* comment' }, path);
+    assert.deepEqual(comments.at(-1), { author: null, created: '2027-01-02T03:04:00Z', body: 'A *new* comment' }, path);
     changed++;
   }
   assert.ok(changed > 30, `changed ${changed}`);
@@ -189,7 +189,7 @@ test('preservation: adding a comment changes nothing else', () => {
 // --- Details and refusals ---
 
 test('formatCommentDate: UTC, unquoted', () => {
-  assert.equal(formatCommentDate(NOW), '2027-01-02 03:04');
+  assert.equal(formatCommentDate(NOW), '2027-01-02T03:04:00Z');
 });
 
 test('stale expected text', () => {
@@ -248,7 +248,7 @@ test('same text plans nothing; hand-written blank lines inside markers are repla
   const spaced = load('---\nstatus: To Do\nupdated_date: x\n---\n\n## Implementation Notes\n\n<!-- SECTION:NOTES:BEGIN -->\n\nold\n\n<!-- SECTION:NOTES:END -->\n');
   assert.equal(
     apply(spaced.doc, setSection(spaced.texts, spaced.file, 'notes', 'new', NOW)),
-    "---\nstatus: To Do\nupdated_date: '2027-01-02 03:04'\n---\n\n## Implementation Notes\n\n<!-- SECTION:NOTES:BEGIN -->\nnew\n<!-- SECTION:NOTES:END -->\n",
+    "---\nstatus: To Do\nupdated_date: '2027-01-02T03:04:00Z'\n---\n\n## Implementation Notes\n\n<!-- SECTION:NOTES:BEGIN -->\nnew\n<!-- SECTION:NOTES:END -->\n",
   );
 });
 
@@ -271,6 +271,6 @@ test('an empty comments block gets the comment without a leading blank line; CRL
   const empty = load('---\r\nstatus: To Do\r\nupdated_date: x\r\n---\r\n\r\n## Comments\r\n\r\n<!-- COMMENTS:BEGIN -->\r\n<!-- COMMENTS:END -->\r\n');
   assert.equal(
     apply(empty.doc, planAddComment(empty.texts, empty.file, { text: 'Hi' }, NOW)),
-    "---\r\nstatus: To Do\r\nupdated_date: '2027-01-02 03:04'\r\n---\r\n\r\n## Comments\r\n\r\n<!-- COMMENTS:BEGIN -->\r\ncreated: 2027-01-02 03:04\r\n\r\n---\r\n\r\nHi\r\n\r\n---\r\n<!-- COMMENTS:END -->\r\n",
+    "---\r\nstatus: To Do\r\nupdated_date: '2027-01-02T03:04:00Z'\r\n---\r\n\r\n## Comments\r\n\r\n<!-- COMMENTS:BEGIN -->\r\ncreated: 2027-01-02T03:04:00Z\r\n\r\n---\r\n\r\nHi\r\n\r\n---\r\n<!-- COMMENTS:END -->\r\n",
   );
 });
